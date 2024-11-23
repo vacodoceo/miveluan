@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Dropzone from "@/components/ui/dropzone";
+import { ExamDropzone } from "./exam-dropzone/exam-dropzone";
 
 export default function MedicalRecordForm() {
   const [textEntry, setTextEntry] = useState("");
@@ -49,6 +50,11 @@ export default function MedicalRecordForm() {
           dropMessage="Arrastra y suelta tus exámenes médicos aquí"
           handleOnDrop={(fileList) => setFile(fileList ? fileList[0] : null)}
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="file-upload">Magia</Label>
+        <ExamDropzone />
       </div>
       <Button type="submit">Agregar entrada</Button>
     </form>
