@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import MedicalRecordForm from "./components/medical-record-form";
 import MedicalRecordList from "./components/medical-record-list";
 import ShareButton from "./components/share-button";
-import FileDriveIntegration from "./components/file-drive-integration";
 
 export const metadata: Metadata = {
   title: "Vita",
