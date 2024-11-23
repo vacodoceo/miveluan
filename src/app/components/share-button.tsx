@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
 
 export default function ShareButton() {
-  const handleShare = () => {
-    console.log("Sharing medical record...");
-  };
+  const handleShare = () => {};
 
   return (
     <Button onClick={handleShare} className="px-8 py-6 text-lg">

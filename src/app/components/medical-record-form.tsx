@@ -1,62 +1,73 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Dropzone from "@/components/ui/dropzone";
-import { ExamDropzone } from "./exam-dropzone/exam-dropzone";
+import { z } from "zod";
+import {
+  Form,
+  FormLabel,
+  FormItem,
+  FormField,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { ExamsUploader } from "./exams-uploader";
+
+const formSchema = z.object({
+  title: z.string().min(2).max(50),
+  description: z.string().optional(),
+});
 
 export default function MedicalRecordForm() {
-  const [textEntry, setTextEntry] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically send the data to your backend
-    console.log("Submitting:", { textEntry, file });
-    // Reset form
-    setTextEntry("");
-    setFile(null);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log(values);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="text-entry">Título</Label>
-        <Input
-          id="text-entry"
-          placeholder="Resultado de la prueba de sangre"
-          value={textEntry}
-          onChange={(e) => setTextEntry(e.target.value)}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Título</FormLabel>
+              <FormControl>
+                <Input placeholder="Cita con el Dr. García" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="text-entry">Descripción (opcional)</Label>
-        <Textarea
-          id="text-entry"
-          placeholder="La prueba de sangre salió positiva para anemia"
-          value={textEntry}
-          onChange={(e) => setTextEntry(e.target.value)}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descripción (opcional)</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="La prueba de sangre salió positiva para anemia"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="file-upload">Exámenes médicos</Label>
-        <Dropzone
-          id="file-upload"
-          type="file"
-          dropMessage="Arrastra y suelta tus exámenes médicos aquí"
-          handleOnDrop={(fileList) => setFile(fileList ? fileList[0] : null)}
-        />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="file-upload">Magia</Label>
-        <ExamDropzone />
-      </div>
-      <Button type="submit">Agregar entrada</Button>
-    </form>
+        <ExamsUploader />
+
+        <Button type="submit">Agregar entrada</Button>
+      </form>
+    </Form>
   );
 }
