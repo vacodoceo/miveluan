@@ -1,9 +1,31 @@
-import FirebaseDriveIntegration from "@/components/google-drive";
+import { Metadata } from "next";
+import MedicalRecordForm from "./components/medical-record-form";
+import MedicalRecordList from "./components/medical-record-list";
+import ShareButton from "./components/share-button";
+import FileDriveIntegration from "./components/file-drive-integration";
+
+export const metadata: Metadata = {
+  title: "Vita",
+  description: "Lleva un seguimiento de tu historial médico y exámenes",
+};
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <FirebaseDriveIntegration />
-    </div>
+    <main className="container mx-auto p-4 space-y-8">
+      <h1 className="text-3xl font-bold text-center mb-8">Historial médico</h1>
+      <div className="grid md:grid-cols-2 gap-8">
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Agregar nueva entrada</h2>
+          <MedicalRecordForm />
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
+          <MedicalRecordList />
+        </div>
+      </div>
+      <div className="flex justify-center mt-8">
+        <ShareButton />
+      </div>
+    </main>
   );
 }
