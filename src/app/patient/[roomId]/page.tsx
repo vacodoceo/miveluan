@@ -5,7 +5,7 @@ import { AlertTriangle, Upload, CheckCircle } from "lucide-react";
 import { useWebRTC } from "@/hooks/use-web-rtc";
 
 const SERVER_URL =
-  process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:3001";
+  process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:8081";
 
 export default function SenderPage({ params }: { params: { roomId: string } }) {
   const roomId = params.roomId;
