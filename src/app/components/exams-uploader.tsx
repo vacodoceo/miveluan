@@ -35,8 +35,6 @@ export function ExamsUploader(props: ExamsUploaderProps) {
     onChange: onValueChange,
   });
 
-  console.log(files);
-
   const onDrop = useCallback(
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       const updatedFiles = files ? [...files, ...acceptedFiles] : acceptedFiles;
