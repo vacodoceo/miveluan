@@ -291,6 +291,29 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     }
   };
 
+  const resetConnection = useCallback(() => {
+    // Close existing connections
+    if (dataChannelRef.current) {
+      dataChannelRef.current.close();
+      dataChannelRef.current = null;
+    }
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+
+    // Reset states
+    setConnected(false);
+    setIsReceiverConnected(false);
+    setConnectionStatus(
+      role === "sender" ? "Esperando al doctor..." : "Esperando al paciente..."
+    );
+    fileReceiveStatesRef.current.clear();
+    fileQueueRef.current = [];
+    isTransferringRef.current = false;
+    setTransferCompleted(false);
+  }, [role]);
+
   const disconnect = useCallback(async () => {
     // Close connections but keep file progress state
     dataChannelRef.current?.close();
@@ -387,5 +410,6 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     disconnect,
     downloadFile,
     transferCompleted,
+    resetConnection,
   };
 };

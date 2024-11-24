@@ -44,6 +44,7 @@ export default function ShareMedicalRecordDrawer() {
     isReceiverConnected,
     sendFiles,
     disconnect,
+    resetConnection,
   } = useWebRTC({
     serverUrl: SERVER_URL,
     role: "sender",
@@ -76,7 +77,7 @@ export default function ShareMedicalRecordDrawer() {
 
   const handleRegenerateRoom = useCallback(async () => {
     if (connected) {
-      await disconnect();
+      await resetConnection();
     }
     setRoomId(getRandomRoomId());
   }, [connected, disconnect]);
