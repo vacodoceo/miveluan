@@ -1,4 +1,9 @@
-import { upsertFileToDrive, getDriveforlderIdIfExists, findFile } from "@/lib/google-drive";
+import {
+  upsertFileToDrive,
+  createDriveFolderIfNotExists,
+  findFile,
+  getDriveforlderIdIfExists,
+} from "@/lib/google-drive";
 import { USER_FOLDER_NAME, USER_FILE_NAME } from "@/constants";
 
 export async function saveUserData<T>(
@@ -8,34 +13,36 @@ export async function saveUserData<T>(
   try {
     // Convert data to JSON string
     const jsonContent = JSON.stringify(data, null, 2);
-    
+
     // Create file object
-    const file = new File(
-      [jsonContent],
-      USER_FILE_NAME,
-      { type: 'application/json' }
-    );
+    const file = new File([jsonContent], USER_FILE_NAME, {
+      type: "application/json",
+    });
 
     // Get or create user folder
-    const folderId = await getDriveforlderIdIfExists(USER_FOLDER_NAME, accessToken);
+    const folderId = await createDriveFolderIfNotExists(
+      USER_FOLDER_NAME,
+      accessToken
+    );
     if (!folderId) {
-      throw new Error('User folder not found');
+      throw new Error("User folder not found");
     }
 
     // Upload/Update file
     await upsertFileToDrive(file, accessToken, folderId);
   } catch (error) {
-    console.error('Error saving user data:', error);
-    throw new Error('Failed to save user data to Google Drive');
+    console.error("Error saving user data:", error);
+    throw new Error("Failed to save user data to Google Drive");
   }
 }
 
-export async function getUserData<T>(
-  accessToken: string
-): Promise<T | null> {
+export async function getUserData<T>(accessToken: string): Promise<T | null> {
   try {
     // Find user folder
-    const folderId = await getDriveforlderIdIfExists(USER_FOLDER_NAME, accessToken);
+    const folderId = await getDriveforlderIdIfExists(
+      USER_FOLDER_NAME,
+      accessToken
+    );
     if (!folderId) {
       return null;
     }
@@ -51,19 +58,20 @@ export async function getUserData<T>(
       `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
       {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        }
+          Authorization: `Bearer ${accessToken}`,
+        },
       }
     );
 
     if (!response.ok) {
-      throw new Error('Failed to download user data from Google Drive');
+      throw new Error("Failed to download user data from Google Drive");
     }
 
     const jsonContent = await response.text();
+
     return JSON.parse(jsonContent) as T;
   } catch (error) {
-    console.error('Error loading user data:', error);
-    throw new Error('Failed to load user data from Google Drive');
+    console.error("Error loading user data:", error);
+    throw new Error("Failed to load user data from Google Drive");
   }
-} 
+}
