@@ -215,7 +215,6 @@ const generateRAGResponse = async (
 
 // Listen for messages from the main thread
 self.addEventListener("message", async (event: { data: any }) => {
-  console.log("RECEIVED MESSAGE");
   self.postMessage({
     type: "log",
     data: `Received data!`,

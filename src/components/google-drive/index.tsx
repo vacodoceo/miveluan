@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuth } from "@/app/contexts/auth/auth.context";
+import { useAuth } from "@/app/contexts/auth.context";
 
 export type GoogleDriveFile = {
   id: string;

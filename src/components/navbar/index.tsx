@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/app/contexts/auth/auth.context";
+import { useAuth } from "@/app/contexts/auth.context";
 
 export const Navbar = () => {
   const { user, signIn, signOut, isAuthenticated } = useAuth();
