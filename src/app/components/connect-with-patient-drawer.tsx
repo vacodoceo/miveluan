@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -8,23 +10,15 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Radio } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { PropagateLoader } from "react-spinners";
-
-const getVerificationCode = () => {
-  return String(999999);
-};
+import { checkRoomAction } from "../actions/check-room-action";
 
 export default function ConnectWithPatientDrawer() {
-  const [verificationCode, setVerificationCode] = useState("");
-  const [inputCode, setInputCode] = useState(Array(6).fill(""));
-  const [hasFoundConnection, setHasFoundConnection] = useState(false);
+  const [roomId, setRoomId] = useState(Array(6).fill(""));
+  const [isLoading, setIsLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  useEffect(() => {
-    setVerificationCode(getVerificationCode());
-  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -32,9 +26,9 @@ export default function ConnectWithPatientDrawer() {
   ) => {
     const value = e.target.value;
     if (/^\d*$/.test(value) && value.length <= 1) {
-      const newInputCode = [...inputCode];
-      newInputCode[index] = value;
-      setInputCode(newInputCode);
+      const newRoomId = [...roomId];
+      newRoomId[index] = value;
+      setRoomId(newRoomId);
 
       if (value && index < inputRefs.current.length - 1) {
         inputRefs.current[index + 1]?.focus();
@@ -42,12 +36,16 @@ export default function ConnectWithPatientDrawer() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const code = inputCode.join("");
-    if (code === verificationCode) {
-      setHasFoundConnection(true);
-    } else {
+    setIsLoading(true);
+    const code = roomId.join("");
+
+    try {
+      await checkRoomAction(code);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      setIsLoading(false);
       alert("Código incorrecto. Inténtalo de nuevo.");
     }
   };
@@ -55,8 +53,7 @@ export default function ConnectWithPatientDrawer() {
   const handleDrawerChange = (isOpen: boolean) => {
     setIsDrawerOpen(isOpen);
     if (!isOpen) {
-      setInputCode(Array(6).fill(""));
-      setHasFoundConnection(false);
+      setRoomId(Array(6).fill(""));
     }
   };
 
@@ -76,10 +73,10 @@ export default function ConnectWithPatientDrawer() {
               Ingrese el código de verificación del paciente para conectar.
             </DrawerDescription>
           </DrawerHeader>
-          {hasFoundConnection ? (
+          {isLoading ? (
             <div className="pb-8">
               <h2 className="text-xl font-semibold text-primary text-center">
-                Esperando confirmación del paciente
+                Conectando con el paciente...
               </h2>
               <div className="flex justify-center p-4">
                 <PropagateLoader color="#80ED99" />
@@ -88,7 +85,7 @@ export default function ConnectWithPatientDrawer() {
           ) : (
             <form onSubmit={handleSubmit} className="p-4 pb-8">
               <div className="flex items-center justify-center space-x-2">
-                {inputCode.map((num, index) => (
+                {roomId.map((num, index) => (
                   <input
                     key={index}
                     autoFocus={index === 0}

@@ -140,7 +140,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         setConnected(true);
         await initiatePeerConnection();
       } else {
-        alert("Hubo un error al unirse a la sala.");
+        throw new Error("Error joining room");
       }
     });
   }, [initiatePeerConnection, role, roomId, socket]);
@@ -202,13 +202,22 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       }
     });
 
-    socket.on("room-update", () => {
-      if (role === "sender") {
-        setConnectionStatus("Hubo un error al conectar con el doctor.");
-      } else if (role === "receiver") {
-        setConnectionStatus("Hubo un error al conectar con el paciente");
+    socket.on(
+      "room-update",
+      ({
+        hasReceiver,
+        hasSender,
+      }: {
+        hasReceiver: boolean;
+        hasSender: boolean;
+      }) => {
+        if (role === "sender" && hasReceiver) {
+          setConnectionStatus("Hubo un error al conectar con el doctor.");
+        } else if (role === "receiver" && hasSender) {
+          setConnectionStatus("Hubo un error al conectar con el paciente");
+        }
       }
-    });
+    );
 
     joinRoom();
 

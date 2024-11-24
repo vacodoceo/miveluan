@@ -4,7 +4,7 @@ import { useWebRTC } from "@/hooks/use-web-rtc";
 import { AlertTriangle, Download, CheckCircle } from "lucide-react";
 
 const SERVER_URL =
-  process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:3001";
+  process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:8081";
 
 export default function ReceiverPage({
   params,
