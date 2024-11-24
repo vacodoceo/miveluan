@@ -26,15 +26,15 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto p-4 space-y-8">
-      <div className="block sm:hidden">
+    <main className="container flex flex-col mx-auto p-4 space-y-8 flex-grow">
+      <div className="flex flex-col sm:hidden flex-grow">
         <MobileTabs />
       </div>
 
       <div className="hidden sm:block">
         <div className="grid md:grid-cols-2 gap-8">
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
+          <div className="flex flex-col flex-grow gap-4">
+            <h2 className="text-2xl font-semibold">Historial médico</h2>
             <MedicalRecordList />
             <div className="grid grid-cols-2 gap-2">
               <ShareMedicalRecordDrawer />

@@ -6,7 +6,7 @@ import ShareMedicalRecordDrawer from "./share-medical-record-drawer";
 
 export default function MobileTabs() {
   return (
-    <Tabs defaultValue="record">
+    <Tabs defaultValue="record" className="flex flex-col flex-grow">
       <TabsList className="grid w-full h-auto grid-cols-2">
         <TabsTrigger className="text-base font-medium" value="record">
           Ficha Médica
@@ -15,7 +15,7 @@ export default function MobileTabs() {
           Chat
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="record">
+      <TabsContent value="record" className="flex flex-col flex-grow gap-4">
         <MedicalRecordList />
         <div className="grid grid-cols-2 gap-2">
           <ShareMedicalRecordDrawer />
