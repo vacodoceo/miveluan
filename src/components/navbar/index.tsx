@@ -76,7 +76,7 @@ export const Navbar = () => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut}>Desconectarse</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
