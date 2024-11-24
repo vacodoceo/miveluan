@@ -16,7 +16,7 @@ export default function Home() {
     return (
       <main className="container mx-auto p-4 space-y-8 flex-grow">
         <div className="flex justify-center mt-8">
-          <Button className="px-8 py-6 text-lg bg-secondary">
+          <Button className="px-8 py-6 text-lg" variant="secondary">
             <Radio className="mr-2 h-5 w-5" />
             Conectar con paciente
           </Button>
