@@ -7,11 +7,14 @@ import ShareMedicalRecordDrawer from "./share-medical-record-drawer";
 export default function MobileTabs() {
   return (
     <Tabs defaultValue="record" className="flex flex-col flex-grow">
-      <TabsList className="grid w-full h-auto grid-cols-2">
-        <TabsTrigger className="text-base font-medium" value="record">
+      <TabsList className="grid w-full h-auto grid-cols-2 rounded-xl">
+        <TabsTrigger
+          className="text-base font-medium rounded-lg"
+          value="record"
+        >
           Ficha Médica
         </TabsTrigger>
-        <TabsTrigger className="text-base font-medium" value="chat">
+        <TabsTrigger className="text-base font-medium rounded-lg" value="chat">
           Chat
         </TabsTrigger>
       </TabsList>
