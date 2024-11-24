@@ -184,7 +184,7 @@ export default function ShareMedicalRecordDrawer() {
                   !connected || !isReceiverConnected || files?.length === 0
                 }
               >
-                Compartir ficha
+                Enviar
               </Button>
             </DrawerFooter>
           </div>

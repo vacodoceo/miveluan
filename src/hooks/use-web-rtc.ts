@@ -40,6 +40,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   >(new Map());
   const fileQueueRef = useRef<File[]>([]);
   const isTransferringRef = useRef(false);
+  const [transferCompleted, setTransferCompleted] = useState(false);
 
   const updateFileProgress = useCallback(
     (fileName: string, updates: Partial<FileProgress>) => {
@@ -259,13 +260,20 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       fileQueueRef.current.shift();
       isTransferringRef.current = false;
 
-      processNextFile();
+      if (fileQueueRef.current.length === 0) {
+        // All files have been sent
+        socket?.emit("files-completed", roomId);
+        setTransferCompleted(true);
+        setConnectionStatus("Envío de archivos terminado");
+      } else {
+        processNextFile();
+      }
     } catch (error) {
       updateFileProgress(file.name, { status: "error" });
       console.error("Error sending file:", error);
       isTransferringRef.current = false;
     }
-  }, [updateFileProgress]);
+  }, [updateFileProgress, socket, roomId]);
 
   const sendFiles = async (files: File[]) => {
     fileQueueRef.current.push(...files);
@@ -284,25 +292,27 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   };
 
   const disconnect = useCallback(async () => {
+    // Close connections but keep file progress state
     dataChannelRef.current?.close();
     peerConnectionRef.current?.close();
 
     setConnected(false);
     setIsReceiverConnected(false);
     setConnectionStatus(
-      role === "sender" ? "Esperando al doctor..." : "Esperando al paciente..."
+      role === "sender"
+        ? "Desconectado del doctor."
+        : "Desconectado del paciente."
     );
-    setFilesProgress([]);
 
+    // Only clear transfer-related state
     fileReceiveStatesRef.current.clear();
     fileQueueRef.current = [];
     isTransferringRef.current = false;
 
     if (socket) {
       socket.emit("leave-room", roomId);
-      await joinRoom();
     }
-  }, [joinRoom, role, roomId, socket]);
+  }, [role, roomId, socket]);
 
   // Socket event handlers setup
   useEffect(() => {
@@ -336,29 +346,6 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       }
     });
 
-    socket.on(
-      "room-update",
-      ({
-        hasReceiver,
-        hasSender,
-      }: {
-        hasReceiver: boolean;
-        hasSender: boolean;
-      }) => {
-        if (role === "sender") {
-          setConnectionStatus(
-            hasReceiver ? "Conectado al doctor" : "Esperando al doctor..."
-          );
-          setIsReceiverConnected(hasReceiver);
-        } else if (role === "receiver") {
-          setConnectionStatus(
-            hasSender ? "Conectado al paciente" : "Esperando al paciente..."
-          );
-          setIsReceiverConnected(hasSender);
-        }
-      }
-    );
-
     joinRoom();
 
     return () => {
@@ -369,6 +356,28 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     };
   }, [socket, role, roomId, joinRoom]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("transfer-completed", () => {
+      setTransferCompleted(true);
+      setConnectionStatus(
+        role === "sender"
+          ? "Envío de archivos terminado."
+          : "Recepción de archivos terminada."
+      );
+    });
+
+    socket.on("force-disconnect", () => {
+      disconnect();
+    });
+
+    return () => {
+      socket.off("transfer-completed");
+      socket.off("force-disconnect");
+    };
+  }, [socket, role, disconnect]);
+
   return {
     connected,
     connectionStatus,
@@ -377,5 +386,6 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     isReceiverConnected,
     disconnect,
     downloadFile,
+    transferCompleted,
   };
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useWebRTC } from "@/hooks/use-web-rtc";
-import { AlertTriangle, Download, CheckCircle } from "lucide-react";
+import { Download, CheckCircle } from "lucide-react";
 
 const SERVER_URL =
   process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:8081";
@@ -63,7 +63,7 @@ export default function ReceiverPage({
             <span className="text-sm text-gray-600">{connectionStatus}</span>
           </div>
 
-          {connected ? (
+          {
             <div className="space-y-4">
               {filesProgress.length > 0 ? (
                 <div className="space-y-4">
@@ -125,7 +125,7 @@ export default function ReceiverPage({
                       className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
                     >
                       <Download className="w-4 h-4" />
-                      Descargar todos los archivos
+                      Descargar archivos
                     </button>
                   )}
                 </div>
@@ -138,14 +138,7 @@ export default function ReceiverPage({
                 </div>
               )}
             </div>
-          ) : (
-            <div className="flex items-center gap-2 p-4 bg-yellow-50 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-yellow-400" />
-              <span className="text-sm text-yellow-700">
-                Conectando con paciente...
-              </span>
-            </div>
-          )}
+          }
         </div>
       </div>
     </div>
