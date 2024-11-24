@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ExamsUploader } from "./exams-uploader";
-import { useMedicalRecords } from "../contexts/medical-record.context";
+import { ExamsUploader } from "../exams-uploader";
+import { useMedicalRecords } from "../../contexts/medical-record.context";
 import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
@@ -69,9 +69,7 @@ export default function MedicalRecordForm() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                <strong>Conversa con tu IA</strong>
-              </FormLabel>
+              <FormLabel>Descripción</FormLabel>
               <FormControl>
                 <Textarea {...field} />
               </FormControl>

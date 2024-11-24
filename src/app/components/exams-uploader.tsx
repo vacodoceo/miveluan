@@ -116,7 +116,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
 
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden">
-      <div className="block sm:hidden flex justify-center">
+      <div className="block sm:hidden justify-center">
         <Button
           onClick={() => document.getElementById("fileInput")?.click()}
           disabled={isDisabled}
