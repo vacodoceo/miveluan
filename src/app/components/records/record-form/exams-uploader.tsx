@@ -125,7 +125,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
           <div
             {...getRootProps()}
             className={cn(
-              "bg-white group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border border-border px-5 py-2.5 text-center transition",
+              "bg-white group relative grid h-36 w-full cursor-pointer place-items-center rounded-lg border border-border px-5 py-2.5 text-center transition",
               "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               isDragActive && "border-muted-foreground/50",
               isDisabled && "pointer-events-none opacity-60",
@@ -147,7 +147,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+              <div className="flex flex-col items-center justify-center gap-2 sm:px-5">
                 <div className="rounded-full border border-dashed p-3">
                   <Upload
                     className="size-7 text-muted-foreground"

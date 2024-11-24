@@ -135,7 +135,6 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
                   ),
                 });
                 initToast.current = { update, id, dismiss };
-                console.log("hola");
               }
               break;
             case "chunk":

@@ -22,7 +22,7 @@ export const Footer = () => {
         <Link href="/terms-and-conditions" className="text-primary">
           Términos y Condiciones
         </Link>
-        © 2024 All rights reserved
+        Vita © 2024 All rights reserved
       </div>
     </div>
   );

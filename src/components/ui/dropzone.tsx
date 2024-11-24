@@ -53,7 +53,7 @@ const Dropzone = React.forwardRef<HTMLDivElement, DropzoneProps>(
         )}
       >
         <CardContent
-          className="flex flex-col items-center justify-center space-y-2 px-2 py-4 text-xs"
+          className="flex flex-col items-center justify-center space-y-2 px-2 py-2 text-xs"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onClick={handleButtonClick}

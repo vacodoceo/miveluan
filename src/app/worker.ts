@@ -25,19 +25,11 @@ import { ChatMessage } from "./components/chat/chat";
 type MemoryVector = MemoryVectorStore["memoryVectors"][number];
 const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
-  // Can use "nomic-ai/nomic-embed-text-v1" for more powerful but slower embeddings
-  // modelName: "nomic-ai/nomic-embed-text-v1",
 });
 
 const vectorstore = new MemoryVectorStore(embeddings);
 
 const uniqueVectors = new Set<string>();
-
-const sha256 = async (text: string) => {
-  return crypto.subtle
-    .digest("SHA-256", new TextEncoder().encode(text))
-    .then((hash) => new Uint8Array(hash).toString());
-};
 
 const RESPONSE_SYSTEM_TEMPLATE = `You are an assistant that helps to interpret medical exams and give advice based on the patient's medical records.
 
@@ -47,7 +39,7 @@ Guidelines:
 3. Identify key patterns and correlations
 4. Use accessible medical terminology
 5. Be clear about information gaps
-6. Limit response to 2-3 short paragraphs
+6. Limit response to 1-2 short paragraphs
 
 Focus only on:
 - Key findings interpretation
@@ -102,8 +94,6 @@ const embedPDF = async (pdfBlob: Blob) => {
   const pdfLoader = new WebPDFLoader(pdfBlob, { parsedItemSeparator: " " });
   const docs = await pdfLoader.load();
 
-  console.log({ docs });
-
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 500,
     chunkOverlap: 50,
@@ -111,27 +101,14 @@ const embedPDF = async (pdfBlob: Blob) => {
 
   const splitDocs = await splitter.splitDocuments(docs);
 
-  const docsWithHashes = await Promise.all(
-    splitDocs.map(async (doc) => ({
-      hash: await sha256(doc.pageContent),
-      doc,
-    }))
-  );
-
-  const uniqueSplitDocs = docsWithHashes.filter((doc) => {
-    const has = uniqueVectors.has(doc.hash);
-    if (!has) {
-      uniqueVectors.add(doc.hash);
-    }
-    return !has;
-  });
+  console.log("splitDocs", splitDocs);
 
   self.postMessage({
     type: "log",
     data: splitDocs,
   });
 
-  await vectorstore.addDocuments(uniqueSplitDocs.map((doc) => doc.doc));
+  await vectorstore.addDocuments(splitDocs);
 
   const vectors = vectorstore.memoryVectors;
 
