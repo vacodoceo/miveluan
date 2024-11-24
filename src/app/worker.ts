@@ -19,6 +19,7 @@ import { ChatWebLLM } from "@langchain/community/chat_models/webllm";
 import { Document } from "@langchain/core/documents";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { ChatMessage } from "./components/chat/chat";
 
 const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
@@ -27,13 +28,6 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 });
 
 const vectorstore = new MemoryVectorStore(embeddings);
-
-type ChatWindowMessage = {
-  content: string;
-  role: "user" | "assistant";
-  runId?: string;
-  traceUrl?: string;
-};
 
 const WEBLLM_RESPONSE_SYSTEM_TEMPLATE = `You are an experienced researcher, expert at interpreting and answering questions based on provided sources. Using the provided context, answer the user's question to the best of your ability using the resources provided.
 Generate a concise answer for a given question based solely on the provided search results. You must only use information from the provided search results. Use an unbiased and journalistic tone. Combine search results together into a coherent answer. Do not repeat text, stay focused, and stop generating when you have answered the question.
@@ -59,7 +53,7 @@ const embedPDF = async (pdfBlob: Blob) => {
 };
 
 const generateRAGResponse = async (
-  messages: ChatWindowMessage[],
+  messages: ChatMessage[],
   {
     model,
     devModeTracer,

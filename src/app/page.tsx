@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import MedicalRecordForm from "./components/medical-record-form";
 import MedicalRecordList from "./components/medical-record-list";
 import ShareButton from "./components/share-button";
+import { Chat } from "./components/chat/chat";
 
 export const metadata: Metadata = {
   title: "Vita",
@@ -22,6 +23,7 @@ export default function Home() {
         </div>
         <div>
           <h2 className="text-2xl font-semibold mb-4">Chat con tu IA</h2>
+          <Chat />
         </div>
       </div>
     </main>

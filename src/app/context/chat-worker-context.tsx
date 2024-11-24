@@ -8,18 +8,12 @@ import React, {
   useState,
 } from "react";
 import { useToast } from "@/hooks/use-toast";
-
-type ChatWindowMessage = {
-  content: string;
-  role: "user" | "assistant";
-  runId?: string;
-  traceUrl?: string;
-};
+import { ChatMessage } from "../components/chat/chat";
 
 interface ChatWorkerContextType {
   worker: Worker | null;
   isLoading: boolean;
-  queryStore: (messages: ChatWindowMessage[]) => Promise<ReadableStream>;
+  queryStore: (messages: ChatMessage[]) => Promise<ReadableStream>;
   embedPDF: (file: File, onReadyToChat?: () => void) => Promise<void>;
 }
 
@@ -42,7 +36,7 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const queryStore = async (
-    messages: ChatWindowMessage[]
+    messages: ChatMessage[]
   ): Promise<ReadableStream> => {
     if (!worker.current) {
       throw new Error("Worker is not ready.");
