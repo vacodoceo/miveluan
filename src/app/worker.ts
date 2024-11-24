@@ -309,6 +309,16 @@ self.addEventListener("message", async (event: { data: any }) => {
     embedVectors(event.data.vectors);
   }
 
+  if (event.data.records) {
+    await vectorstore.addDocuments(
+      event.data.records.map((record: any) => ({
+        pageContent: `Título: ${record.title}\nDescripción: ${
+          record.description
+        }\nFecha: ${record.date.toLocaleDateString()}`,
+      }))
+    );
+  }
+
   if (event.data.pdf) {
     try {
       const vectors = await embedPDF(event.data.pdf);

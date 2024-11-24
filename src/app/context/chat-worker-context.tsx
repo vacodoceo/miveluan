@@ -15,6 +15,7 @@ import { VECTOR_FOLDER_NAME, VECTOR_FILE_NAME } from "@/constants";
 
 type MemoryVector = MemoryVectorStore["memoryVectors"][number];
 import { ChatMessage } from "../components/chat/chat";
+import { useMedicalRecords } from "../contexts/medical-record.context";
 
 interface ChatWorkerContextType {
   worker: Worker | null;
@@ -35,10 +36,20 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const { accessToken } = useAuth();
   const [areEmbeddingsLoaded, setAreEmbeddingsLoaded] = useState(false);
+  const { records } = useMedicalRecords();
 
   const [vectors, setVectors] = useState<MemoryVector[]>([]);
   const worker = useRef<Worker | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (records.length > 0) {
+      worker.current?.postMessage({
+        records,
+        type: "log",
+      });
+    }
+  }, [records]);
 
   useEffect(() => {
     if (areEmbeddingsLoaded) return;
