@@ -35,8 +35,6 @@ export default function MedicalRecordForm() {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-
     addRecord({
       title: values.title,
       description: values.description,

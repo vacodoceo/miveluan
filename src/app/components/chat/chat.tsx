@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SendHorizontal } from "lucide-react";
 
 export type ChatMessage = {
   content: string;
@@ -81,15 +82,14 @@ export const Chat = () => {
       </div>
 
       <form onSubmit={sendMessage} className="flex w-full flex-col">
-        <div className="flex w-full mt-4">
+        <div className="flex w-full mt-4 gap-2">
           <Textarea
-            className="grow mr-8 p-4 rounded"
             value={input}
             placeholder={"Qué opinas de mis últimos exámenes?"}
             onChange={(e) => setInput(e.target.value)}
           />
           <Button type="submit" loading={isLoading}>
-            Enviar
+            <SendHorizontal />
           </Button>
         </div>
       </form>
