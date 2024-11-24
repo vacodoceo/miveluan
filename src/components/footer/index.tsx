@@ -6,7 +6,7 @@ import GitHub_Invertocat_Logo from "../../assets/github-logo.png";
 
 export const Footer = () => {
   return (
-    <div className="text-sm flex flex-col items-center mb-8 mt-8">
+    <div className="text-sm flex flex-col items-center sm:my-8 mb-4 mt-2">
       <Link
         href="https://github.com/vacodoceo/miveluan"
         className="text-xl font-bold mb-2"

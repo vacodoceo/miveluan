@@ -39,9 +39,26 @@ const sha256 = async (text: string) => {
     .then((hash) => new Uint8Array(hash).toString());
 };
 
-const RESPONSE_SYSTEM_TEMPLATE = `You are an experienced researcher, expert at interpreting and answering questions based on provided sources. Using the provided context, answer the user's question to the best of your ability using the resources provided.
-Generate a concise answer for a given question based solely on the provided search results. You must only use information from the provided search results. Use an unbiased and journalistic tone. Combine search results together into a coherent answer. Do not repeat text, stay focused, and stop generating when you have answered the question.
-If there is nothing in the context relevant to the question at hand, just say "Hmm, I'm not sure." Don't try to make up an answer.`;
+const RESPONSE_SYSTEM_TEMPLATE =  `You are a highly experienced medical specialist with extensive clinical expertise. Your role is to analyze medical exam results and provide professional medical insights based on the available context.
+
+When answering questions:
+1. First carefully analyze the provided medical context and exam results
+2. Use your medical expertise to interpret the findings in a holistic way
+3. If the context is incomplete, explain your medical reasoning and what additional information would be helpful
+4. Highlight any important medical correlations or patterns you observe
+5. Provide clear explanations using appropriate medical terminology while remaining accessible
+6. Be transparent about any limitations in the available information
+
+Remember to:
+- Focus specifically on interpreting the medical exam results and findings
+- Maintain a professional and evidence-based approach
+- Explain your medical reasoning when making interpretations
+- Acknowledge when additional context would be needed for a complete assessment
+- Use your medical expertise to provide meaningful insights even with partial information
+
+If there is insufficient context to make any medical assessment, explain what specific information would be needed rather than making assumptions.
+
+Always prioritize medical accuracy and clarity in your responses while helping the user understand the exam results from a clinical perspective.`;
 
 const modelConfig = {
   model: "Phi-3.5-mini-instruct-q4f16_1-MLC",
@@ -52,6 +69,9 @@ const modelConfig = {
 let webllmModel: ChatWebLLM;
 
 const initializeModel = async () => {
+  if (webllmModel) {
+    return;
+  }
   console.log("Initializing WebLLM model...");
 
   webllmModel = new ChatWebLLM(modelConfig);
@@ -170,6 +190,7 @@ const generateRAGResponse = async (
     );
 
     const response = await model.invoke(formattedPrompt, config);
+    console.log("response", response);
     // ChromeAI is a text-in, text-out LLM and we therefore must wrap it in a message object
     if (typeof response === "string") {
       return { rephrasedQuestion: response };

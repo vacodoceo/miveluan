@@ -23,7 +23,7 @@ export default function Home() {
   }
 
   return (
-    <main className="container flex flex-col mx-auto p-4 space-y-8 flex-grow">
+    <main className="container mx-auto p-4 space-y-8">
       <InitDialog />
       <div className="flex flex-col sm:hidden flex-grow">
         <MobileTabs />

@@ -28,14 +28,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export default function MedicalRecordList() {
   const { records } = useMedicalRecords();
 
+  const sortedRecords = records.sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
   return (
-    <ScrollArea className="flex-grow flex flex-col bg-muted rounded-xl p-2">
+    <ScrollArea className="flex-grow flex flex-col bg-muted rounded-xl p-2 h-[calc(100vh-20rem)] sm:h-[calc(100vh-25rem)]">
       <div className="space-y-2">
-        {records.map((record) => (
+        {sortedRecords.map((record) => (
           <Card key={record.id} className="shadow-none rounded-lg border-none">
-            <CardHeader>
+            <CardHeader className="p-4 space-y-0.5 pb-2">
               <CardTitle>{record.title}</CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 {record.date.toLocaleDateString("es-ES", {
                   year: "numeric",
                   month: "long",
@@ -43,14 +47,16 @@ export default function MedicalRecordList() {
                 })}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {record.description && <p>{record.description}</p>}
+            <CardContent className="space-y-1 p-4 pt-0">
+              {record.description && (
+                <p className="text-sm">{record.description}</p>
+              )}
               {record.files.length > 0 && (
                 <div className="flex gap-2 flex-col">
                   {record.files.map((file) => (
                     <div key={file.name} className="flex gap-2 items-center">
-                      <FileText className="w-5 h-5 text-primary" />
-                      <p className="font-medium flex-1">{file.name}</p>
+                      <FileText className="w-4 h-4 text-primary" />
+                      <p className="font-medium flex-1 text-sm">{file.name}</p>
                       {/* <div className="border border-border py-0.5 px-2 flex gap-2 items-center rounded-sm">
                       <p className="text-sm font-medium text-ellipsis overflow-hidden">
                         {formatFileSize(file.size)}

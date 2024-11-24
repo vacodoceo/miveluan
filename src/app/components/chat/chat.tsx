@@ -1,12 +1,13 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect, useRef } from "react";
 import { useChatWorker } from "../../context/chat-worker-context";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { SendHorizontal } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export type ChatMessage = {
   content: string;
@@ -18,9 +19,14 @@ export type ChatMessage = {
 export const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { queryStore, isLoading } = useChatWorker();
   const { toast } = useToast();
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   async function sendMessage(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -68,21 +74,19 @@ export const Chat = () => {
   }
 
   return (
-    <div
-      className={`flex flex-col items-center p-4 md:p-8 grow overflow-hidden bg-white border rounded-lg`}
-    >
-      <div className="flex flex-col-reverse w-full mb-4 overflow-auto grow">
-        {messages.length > 0
-          ? [...messages]
-              .reverse()
-              .map((m, i) => (
+    <div className="flex flex-col p-4 md:p-8 bg-muted rounded-lg">
+      <ScrollArea className="flex-grow flex flex-col rounded-xl p-2 h-[calc(100vh-20rem)] sm:h-[calc(100vh-25rem)]">
+        <div className="flex flex-col">
+          {messages.length > 0
+            ? messages.map((m, i) => (
                 <ChatMessageBubble key={i} message={m}></ChatMessageBubble>
               ))
-          : ""}
-      </div>
-
-      <form onSubmit={sendMessage} className="flex w-full flex-col">
-        <div className="flex w-full mt-4 gap-2">
+            : ""}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+      <form onSubmit={sendMessage} className="flex w-full">
+        <div className="flex w-full gap-2">
           <Textarea
             value={input}
             placeholder={"Qué opinas de mis últimos exámenes?"}
