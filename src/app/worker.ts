@@ -271,5 +271,3 @@ self.addEventListener("message", async (event: { data: any }) => {
     data: "OK",
   });
 });
-
-console.log("WORKER LOADED");

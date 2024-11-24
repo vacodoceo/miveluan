@@ -1,6 +1,6 @@
 import { FileText } from "lucide-react";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useControllableState } from "../hooks/use-controllable-state";
 import Dropzone, { type FileRejection } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
@@ -9,39 +9,12 @@ import { Upload, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useChatWorker } from "../hooks/use-chat-worker";
+import { useChatWorker } from "@/app/context/chat-worker-context";
 
 interface ExamsUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  /**
-   * Value of the uploader.
-   * @type File[]
-   * @default undefined
-   * @example value={files}
-   */
   value?: File[];
-
-  /**
-   * Function to be called when the value changes.
-   * @type (files: File[]) => void
-   * @default undefined
-   * @example onValueChange={(files) => setFiles(files)}
-   */
   onValueChange?: (files: File[]) => void;
-
-  /**
-   * Progress of the uploaded files.
-   * @type Record<string, number> | undefined
-   * @default undefined
-   * @example progresses={{ "file1.png": 50 }}
-   */
-  progresses?: Record<string, number>;
-
-  /**
-   * Whether the uploader is disabled.
-   * @type boolean
-   * @default false
-   * @example disabled
-   */
+  sses?: Record<string, number>;
   disabled?: boolean;
 }
 
@@ -49,15 +22,15 @@ export function ExamsUploader(props: ExamsUploaderProps) {
   const {
     value: valueProp,
     onValueChange,
-    progresses,
     disabled = false,
     className,
     ...dropzoneProps
   } = props;
 
-  const { isLoading, embedPDF } = useChatWorker({});
+  const { isLoading, embedPDF } = useChatWorker();
   const { toast } = useToast();
 
+  const [filesLoading, setFilesLoading] = useState<Set<string>>(new Set());
   const [files, setFiles] = useControllableState({
     prop: valueProp,
     onChange: onValueChange,
@@ -159,7 +132,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
                 key={index}
                 file={file}
                 onRemove={() => onRemove(index)}
-                progress={progresses?.[file.name]}
+                // loading={}
               />
             ))}
           </div>

@@ -1,5 +1,13 @@
+"use client";
+
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useRef, useEffect, useState } from "react";
 
 type ChatWindowMessage = {
   content: string;
@@ -8,25 +16,21 @@ type ChatWindowMessage = {
   traceUrl?: string;
 };
 
-interface UseChatWorkerProps {
-  onReadyToChat?: () => void;
-}
-
-interface UseChatWorkerReturn {
+interface ChatWorkerContextType {
+  worker: Worker | null;
   isLoading: boolean;
   queryStore: (messages: ChatWindowMessage[]) => Promise<ReadableStream>;
-  embedPDF: (file: File) => Promise<void>;
-  worker: Worker | null;
+  embedPDF: (file: File, onReadyToChat?: () => void) => Promise<void>;
 }
 
-export function useChatWorker({
-  onReadyToChat,
-}: UseChatWorkerProps): UseChatWorkerReturn {
+const ChatWorkerContext = createContext<ChatWorkerContextType | undefined>(
+  undefined
+);
+
+export function WorkerProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const worker = useRef<Worker | null>(null);
   const { toast } = useToast();
-
-  console.log(worker.current);
 
   useEffect(() => {
     if (!worker.current) {
@@ -35,10 +39,6 @@ export function useChatWorker({
       });
       setIsLoading(false);
     }
-
-    return () => {
-      worker.current?.terminate();
-    };
   }, []);
 
   const queryStore = async (
@@ -90,7 +90,6 @@ export function useChatWorker({
                   e.data.data.progress * 100
                 }%`,
               });
-
               break;
             case "chunk":
               controller.enqueue(e.data.data);
@@ -112,12 +111,13 @@ export function useChatWorker({
     });
   };
 
-  const embedPDF = async (file: File): Promise<void> => {
+  const embedPDF = async (
+    file: File,
+    onReadyToChat?: () => void
+  ): Promise<void> => {
     if (!worker.current) {
       throw new Error("Worker is not ready.");
     }
-
-    console.log("SU EMBEDDING LOCOOO");
 
     return new Promise((resolve, reject) => {
       worker.current?.postMessage({ pdf: file });
@@ -133,7 +133,6 @@ export function useChatWorker({
             reject(new Error(e.data.error));
             break;
           case "complete":
-            console.log("COMPLETE");
             worker.current?.removeEventListener("message", onMessageReceived);
             onReadyToChat?.();
             resolve();
@@ -145,10 +144,25 @@ export function useChatWorker({
     });
   };
 
-  return {
+  const value = {
+    worker: worker.current,
     isLoading,
     queryStore,
     embedPDF,
-    worker: worker.current,
   };
+
+  return (
+    <ChatWorkerContext.Provider value={value}>
+      {children}
+    </ChatWorkerContext.Provider>
+  );
+}
+
+// Custom hook to use the worker context
+export function useChatWorker() {
+  const context = useContext(ChatWorkerContext);
+  if (context === undefined) {
+    throw new Error("useWorker must be used within a WorkerProvider");
+  }
+  return context;
 }
