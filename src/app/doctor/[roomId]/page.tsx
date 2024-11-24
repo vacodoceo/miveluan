@@ -13,17 +13,17 @@ export default function ReceiverPage({
 }) {
   const roomId = params.roomId;
 
-  const { connected, connectionStatus, filesProgress } = useWebRTC({
-    serverUrl: SERVER_URL,
-    role: "receiver",
-    roomId: roomId as string,
-  });
+  const { connected, connectionStatus, filesProgress, downloadFile } =
+    useWebRTC({
+      serverUrl: SERVER_URL,
+      role: "receiver",
+      roomId: roomId as string,
+    });
 
   if (!roomId) {
     return <div>Loading...</div>;
   }
 
-  // Calculate overall progress
   const calculateOverallProgress = () => {
     if (filesProgress.length === 0) return 0;
     const totalProgress = filesProgress.reduce((sum, file) => {
@@ -36,6 +36,14 @@ export default function ReceiverPage({
   const completedFiles = filesProgress.filter(
     (file) => file.status === "completed"
   ).length;
+
+  const downloadAllFiles = () => {
+    filesProgress.forEach((file) => {
+      if (file.status === "completed") {
+        downloadFile(file);
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -78,12 +86,23 @@ export default function ReceiverPage({
                     </div>
                   </div>
 
+                  {/* Download all button */}
+                  {completedFiles > 0 && (
+                    <button
+                      onClick={downloadAllFiles}
+                      className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Descargar todos los archivos
+                    </button>
+                  )}
+
                   {/* File list */}
                   <div className="space-y-2">
                     {filesProgress.map((file) => (
                       <div
                         key={`${file.fileName}-${file.status}`}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
                       >
                         {file.status === "completed" ? (
                           <CheckCircle className="w-4 h-4 text-green-500" />
@@ -93,11 +112,19 @@ export default function ReceiverPage({
                         <span className="text-sm text-gray-600 truncate flex-1">
                           {file.fileName}
                         </span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 min-w-[50px]">
                           {file.status === "completed"
                             ? "Completado"
                             : `${Math.round(file.progress)}%`}
                         </span>
+                        {file.status === "completed" && (
+                          <button
+                            onClick={() => downloadFile(file)}
+                            className="p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
