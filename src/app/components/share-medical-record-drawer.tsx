@@ -18,7 +18,7 @@ const getVerificationCode = () => {
 
 export default function ShareMedicalRecordDrawer() {
   const [verificationCode, setVerificationCode] = useState("");
-  const [hasFoundConnection, setHasFoundConnection] = useState(false);
+  const [hasFoundConnection] = useState(false);
 
   useEffect(() => {
     setVerificationCode(getVerificationCode());

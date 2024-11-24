@@ -20,7 +20,6 @@ import { Document } from "@langchain/core/documents";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
-type MemoryVector = MemoryVectorStore["memoryVectors"][number];
 import { ChatMessage } from "./components/chat/chat";
 
 const embeddings = new HuggingFaceTransformersEmbeddings({
@@ -34,9 +33,9 @@ const vectorstore = new MemoryVectorStore(embeddings);
 const uniqueVectors = new Set<string>();
 
 const sha256 = async (text: string) => {
-  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(
-    (hash) => new Uint8Array(hash).toString()
-  );
+  return crypto.subtle
+    .digest("SHA-256", new TextEncoder().encode(text))
+    .then((hash) => new Uint8Array(hash).toString());
 };
 
 const RESPONSE_SYSTEM_TEMPLATE = `You are an experienced researcher, expert at interpreting and answering questions based on provided sources. Using the provided context, answer the user's question to the best of your ability using the resources provided.
@@ -81,7 +80,7 @@ const embedPDF = async (pdfBlob: Blob) => {
   const pdfLoader = new WebPDFLoader(pdfBlob, { parsedItemSeparator: " " });
   const docs = await pdfLoader.load();
 
-  console.log({docs});
+  console.log({ docs });
 
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 500,
@@ -90,10 +89,12 @@ const embedPDF = async (pdfBlob: Blob) => {
 
   const splitDocs = await splitter.splitDocuments(docs);
 
-  const docsWithHashes = await Promise.all(splitDocs.map(async (doc) => ({
-    hash: await sha256(doc.pageContent),
-    doc
-  })));
+  const docsWithHashes = await Promise.all(
+    splitDocs.map(async (doc) => ({
+      hash: await sha256(doc.pageContent),
+      doc,
+    }))
+  );
 
   const uniqueSplitDocs = docsWithHashes.filter((doc) => {
     const has = uniqueVectors.has(doc.hash);
@@ -107,7 +108,6 @@ const embedPDF = async (pdfBlob: Blob) => {
     type: "log",
     data: splitDocs,
   });
-
 
   await vectorstore.addDocuments(uniqueSplitDocs.map((doc) => doc.doc));
 
