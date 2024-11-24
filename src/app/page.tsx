@@ -11,6 +11,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="container mx-auto p-4 space-y-8">
+      <div className="flex justify-center">
+        <ShareButton />
+      </div>
       <h1 className="text-3xl font-bold text-center mb-8">Historial médico</h1>
       <div className="grid md:grid-cols-2 gap-8">
         <div>
@@ -21,9 +24,6 @@ export default function Home() {
           <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
           <MedicalRecordList />
         </div>
-      </div>
-      <div className="flex justify-center mt-8">
-        <ShareButton />
       </div>
     </main>
   );
