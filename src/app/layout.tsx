@@ -7,6 +7,8 @@ import { Navbar } from "@/components/navbar";
 import { AuthProvider } from "./contexts/auth.context";
 import { MedicalRecordsProvider } from "./contexts/medical-record.context";
 import { Footer } from "@/components/footer";
+import Head from "next/head";
+import "../auth-sw";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -35,6 +37,9 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
+        <Head>
+          <link rel="icon" href="/favicon.ico" sizes="any" />
+        </Head>
         <AuthProvider>
           <Navbar />
           <MedicalRecordsProvider>

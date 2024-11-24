@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/app/contexts/auth.context";
+import Vita_Logo_No_Bg from "../../assets/vita-logo-no-bg.png";
+import Google_Logo from "../../assets/google-logo.svg";
 
 export const Navbar = () => {
   const { user, signIn, signOut, isAuthenticated } = useAuth();
@@ -22,7 +24,7 @@ export const Navbar = () => {
       <nav className="flex items-center justify-between p-4">
         <Link href="/" className="text-xl font-bold">
           <Image
-            src="/Vita logo no bg.png"
+            src={Vita_Logo_No_Bg}
             width={100}
             height={100}
             alt="Vita logo"
@@ -38,12 +40,7 @@ export const Navbar = () => {
   return (
     <nav className="flex items-center justify-between p-4">
       <Link href="/" className="text-xl font-bold">
-        <Image
-          src="/Vita logo no bg.png"
-          width={100}
-          height={100}
-          alt="Vita logo"
-        />
+        <Image src={Vita_Logo_No_Bg} width={100} height={100} alt="Vita logo" />
       </Link>
       <div className="flex items-center space-x-4">
         <DropdownMenu>
@@ -60,7 +57,7 @@ export const Navbar = () => {
               </Button>
               <Image
                 src="/google-icon-logo-svgrepo-com.svg"
-                alt="Google logo"
+                alt={Google_Logo}
                 width={16}
                 height={16}
                 className="absolute bottom-0 right-0"
