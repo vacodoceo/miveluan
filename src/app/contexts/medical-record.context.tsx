@@ -1,8 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import { saveUserData } from "@/lib/repositories/user";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useAuth } from "./auth.context";
 
-interface MedicalRecord {
+export interface MedicalRecord {
   id: string;
   date: Date;
   title: string;
@@ -27,6 +29,7 @@ export function MedicalRecordsProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const { accessToken } = useAuth();
   const [records, setRecords] = useState<MedicalRecord[]>([]);
 
   const addRecord = (record: Omit<MedicalRecord, "id">) => {
@@ -46,6 +49,12 @@ export function MedicalRecordsProvider({
     addRecord,
     importRecords,
   };
+
+  useEffect(() => {
+    if (accessToken && records.length > 0) {
+      saveUserData(records, accessToken);
+    }
+  }, [records, accessToken]);
 
   return (
     <MedicalRecordsContext.Provider value={value}>

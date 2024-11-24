@@ -12,7 +12,7 @@ export const ChatMessageBubble = (props: { message: ChatMessage }) => {
 
   return (
     <div
-      className={`${alignmentClassName} ${colorClassName} rounded px-4 py-2 max-w-[80%] mb-8 flex flex-col`}
+      className={`${alignmentClassName} ${colorClassName} rounded px-4 py-2 max-w-[80%] mb-2 flex flex-col`}
     >
       <div className="flex hover:group group">
         <div className="mr-2">{prefix}</div>

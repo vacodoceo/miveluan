@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import GitHub_Invertocat_Logo from "../../assets/github-logo.png";
 
 export const Footer = () => {
   return (
@@ -11,7 +12,7 @@ export const Footer = () => {
         className="text-xl font-bold mb-2"
       >
         <Image
-          src="/GitHub_Invertocat_Logo.png"
+          src={GitHub_Invertocat_Logo}
           width={30}
           height={30}
           alt="Github logo"

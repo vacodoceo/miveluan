@@ -31,7 +31,7 @@ export function DrawerDialogRecordForm() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full" size="lg">
+          <Button className="w-full" size="lg">
             <Plus className="h-5 w-5" /> Crear registro
           </Button>
         </DialogTrigger>
@@ -51,7 +51,7 @@ export function DrawerDialogRecordForm() {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="w-full" size="lg">
+        <Button className="w-full" size="lg">
           <Plus className="h-5 w-5" /> Crear registro
         </Button>
       </DrawerTrigger>
