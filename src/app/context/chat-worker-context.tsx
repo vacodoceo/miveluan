@@ -20,7 +20,10 @@ interface ChatWorkerContextType {
   worker: Worker | null;
   isLoading: boolean;
   queryStore: (messages: ChatMessage[]) => Promise<ReadableStream>;
-  embedPDF: (file: File, onReadyToChat?: () => void) => Promise<MemoryVector[] | undefined>;
+  embedPDF: (
+    file: File,
+    onReadyToChat?: () => void
+  ) => Promise<MemoryVector[] | undefined>;
   vectors: MemoryVector[];
 }
 
@@ -40,18 +43,24 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (areEmbeddingsLoaded) return;
     if (!accessToken) return;
+    console.log("loading vectors");
     setAreEmbeddingsLoaded(true);
-
-    if (!areEmbeddingsLoaded) {
-      getVectorsFromGoogleDrive(
-        VECTOR_FILE_NAME,
-        VECTOR_FOLDER_NAME,
-        accessToken
-      ).then((vectors) => {
-        console.log("loaded vectors", vectors);
-        setAreEmbeddingsLoaded(true);
+    getVectorsFromGoogleDrive(
+      VECTOR_FILE_NAME,
+      VECTOR_FOLDER_NAME,
+      accessToken
+    ).then((vectors) => {
+      const mappedVectors = vectors.map((vector) => ({
+        ...vector,
+        metadata: vector.metadata || {},
+      }));
+      setVectors(mappedVectors);
+      worker.current?.postMessage({
+        vectors: mappedVectors,
+        type: "log",
       });
-    }
+      setAreEmbeddingsLoaded(true);
+    });
   }, [accessToken]);
   const initToast = useRef<null | {
     update: (params: ToasterToast) => void;

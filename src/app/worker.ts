@@ -116,6 +116,20 @@ const embedPDF = async (pdfBlob: Blob) => {
   return vectors;
 };
 
+const embedVectors = async (vectors: MemoryVector[]) => {
+  vectors.forEach((vector) => {
+    uniqueVectors.add(vector.id || "");
+  });
+  await vectorstore.addVectors(
+    vectors.map((vector) => vector.embedding),
+    vectors.map((vector) => ({
+      metadata: vector.metadata,
+      pageContent: vector.content,
+      id: vector.id,
+    }))
+  );
+};
+
 const generateRAGResponse = async (
   messages: ChatMessage[],
   {
@@ -289,6 +303,10 @@ self.addEventListener("message", async (event: { data: any }) => {
         apiKey: event.data.DEV_LANGCHAIN_TRACING.LANGCHAIN_API_KEY,
       }),
     });
+  }
+
+  if (event.data.vectors) {
+    embedVectors(event.data.vectors);
   }
 
   if (event.data.pdf) {
