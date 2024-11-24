@@ -1,13 +1,17 @@
-import { useRouter } from "next/router";
+"use client";
+
 import { useWebRTC } from "@/hooks/use-web-rtc";
 import { AlertTriangle, Download, CheckCircle } from "lucide-react";
 
 const SERVER_URL =
-  process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:4000";
+  process.env.NEXT_PUBLIC_WEBRTC_SERVER_URL || "http://localhost:3001";
 
-export default function ReceiverPage() {
-  const router = useRouter();
-  const { roomId } = router.query;
+export default function ReceiverPage({
+  params,
+}: {
+  params: { roomId: string };
+}) {
+  const roomId = params.roomId;
 
   const { connected, connectionStatus, progress, currentFileName } = useWebRTC({
     serverUrl: SERVER_URL,

@@ -12,7 +12,9 @@ interface UseWebRTCProps {
 export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState("Disconnected");
+  const [connectionStatus, setConnectionStatus] = useState(
+    role === "sender" ? "Esperando al doctor..." : "Esperando al paciente..."
+  );
   const [progress, setProgress] = useState(0);
   const [currentFileName, setCurrentFileName] = useState<string>("");
 
@@ -32,15 +34,15 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   }, [serverUrl]);
 
   const setupDataChannel = useCallback(
-    (channel: RTCDataChannel) => {
+    (channel: RTCDataChannel, onOpenText: string, onCloseText: string) => {
       channel.binaryType = "arraybuffer";
 
       channel.onopen = () => {
-        setConnectionStatus("Connected to peer");
+        setConnectionStatus(onOpenText);
       };
 
       channel.onclose = () => {
-        setConnectionStatus("Connection closed");
+        setConnectionStatus(onCloseText);
       };
 
       channel.onmessage = async (event) => {
@@ -100,7 +102,11 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     if (role === "sender") {
       const dataChannel = peerConnection.createDataChannel("fileTransfer");
       dataChannelRef.current = dataChannel;
-      setupDataChannel(dataChannel);
+      setupDataChannel(
+        dataChannel,
+        "Conectado al doctor. Puede enviar los archivos.",
+        "Se ha desconectado del doctor."
+      );
 
       socket?.on("peer-joined", async () => {
         try {
@@ -117,7 +123,11 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     } else {
       peerConnection.ondatachannel = (event) => {
         dataChannelRef.current = event.channel;
-        setupDataChannel(event.channel);
+        setupDataChannel(
+          event.channel,
+          "Conectado al paciente. Esperando archivos...",
+          "Se ha desconectado del paciente."
+        );
       };
     }
   }, [role, socket, roomId, setupDataChannel]);
@@ -130,7 +140,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         setConnected(true);
         await initiatePeerConnection();
       } else {
-        alert("Could not join room. Role already taken.");
+        alert("Hubo un error al unirse a la sala.");
       }
     });
   }, [initiatePeerConnection, role, roomId, socket]);
@@ -192,11 +202,11 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       }
     });
 
-    socket.on("room-update", (status) => {
-      if (role === "sender" && status.hasReceiver) {
-        setConnectionStatus("Receiver joined, establishing connection...");
-      } else if (role === "receiver" && status.hasSender) {
-        setConnectionStatus("Connected to sender...");
+    socket.on("room-update", () => {
+      if (role === "sender") {
+        setConnectionStatus("Hubo un error al conectar con el doctor.");
+      } else if (role === "receiver") {
+        setConnectionStatus("Hubo un error al conectar con el paciente");
       }
     });
 
