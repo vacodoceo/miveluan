@@ -28,10 +28,14 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export default function MedicalRecordList() {
   const { records } = useMedicalRecords();
 
+  const sortedRecords = records.sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
   return (
     <ScrollArea className="flex-grow flex flex-col bg-muted rounded-xl p-2 h-[calc(100vh-20rem)] sm:h-[calc(100vh-25rem)]">
       <div className="space-y-2">
-        {records.map((record) => (
+        {sortedRecords.map((record) => (
           <Card key={record.id} className="shadow-none rounded-lg border-none">
             <CardHeader className="p-4 space-y-0.5 pb-2">
               <CardTitle>{record.title}</CardTitle>
