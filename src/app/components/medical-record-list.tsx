@@ -51,7 +51,7 @@ export default function MedicalRecordList() {
         </Card>
       ))}
       <Button onClick={generateSummary} className="w-full">
-        Generar resumen con IA
+        Generar resumen con tu IA
       </Button>
       {summary && (
         <Card>

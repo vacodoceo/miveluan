@@ -14,12 +14,8 @@ export default function Home() {
       <div className="flex justify-center">
         <ShareButton />
       </div>
-      <h1 className="text-3xl font-bold text-center mb-8">Historial médico</h1>
+      <MedicalRecordForm />
       <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Agregar nueva entrada</h2>
-          <MedicalRecordForm />
-        </div>
         <div>
           <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
           <MedicalRecordList />

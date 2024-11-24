@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import {
   Form,
@@ -35,29 +34,14 @@ export default function MedicalRecordForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título</FormLabel>
-              <FormControl>
-                <Input placeholder="Cita con el Dr. García" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción (opcional)</FormLabel>
+              <FormLabel>
+                <strong>Conversa con tu IA</strong>
+              </FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="La prueba de sangre salió positiva para anemia"
-                  {...field}
-                />
+                <Textarea placeholder="Escribe tu mensaje aquí" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
