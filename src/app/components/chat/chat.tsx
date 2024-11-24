@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect, useRef } from "react";
+import { FormEvent, useState, useEffect, useRef, KeyboardEvent } from "react";
 import { useChatWorker } from "../../context/chat-worker-context";
 import { useToast } from "@/hooks/use-toast";
 import { ChatMessageBubble } from "./chat-message-bubble";
@@ -20,6 +20,7 @@ export const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { queryStore, isLoading } = useChatWorker();
   const { toast } = useToast();
@@ -28,7 +29,7 @@ export const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  async function sendMessage(e: FormEvent<HTMLFormElement>) {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (isLoading || !input) {
@@ -71,11 +72,18 @@ export const Chat = () => {
         description: e.message,
       });
     }
-  }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      formRef.current?.requestSubmit();
+    }
+  };
 
   return (
     <div className="flex flex-col p-4 md:p-8 bg-muted rounded-lg">
-      <ScrollArea className="flex flex-col rounded-xl p-2 h-[calc(100vh-26rem)] sm:h-[calc(100vh-33rem)]">
+      <ScrollArea className="flex flex-col rounded-xl p-2 h-[calc(100vh-23rem)] sm:h-[calc(100vh-33rem)]">
         <div className="flex flex-col">
           {messages.length > 0
             ? messages.map((m, i) => (
@@ -85,14 +93,15 @@ export const Chat = () => {
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-      <form onSubmit={sendMessage} className="flex w-full">
-        <div className="flex w-full gap-2">
+      <form ref={formRef} onSubmit={handleSubmit} className="flex w-full">
+        <div className="flex w-full gap-2 items-stretch">
           <Textarea
             value={input}
             placeholder={"Qué opinas de mis últimos exámenes?"}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
-          <Button type="submit" loading={isLoading}>
+          <Button type="submit" className="h-full" loading={isLoading}>
             <SendHorizontal />
           </Button>
         </div>
