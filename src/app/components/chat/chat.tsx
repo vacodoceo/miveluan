@@ -75,7 +75,7 @@ export const Chat = () => {
 
   return (
     <div className="flex flex-col p-4 md:p-8 bg-muted rounded-lg">
-      <ScrollArea className="flex-grow flex flex-col rounded-xl p-2 h-[calc(100vh-20rem)] sm:h-[calc(100vh-25rem)]">
+      <ScrollArea className="flex flex-col rounded-xl p-2 h-[calc(100vh-26rem)] sm:h-[calc(100vh-33rem)]">
         <div className="flex flex-col">
           {messages.length > 0
             ? messages.map((m, i) => (

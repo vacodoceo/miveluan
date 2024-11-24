@@ -33,7 +33,7 @@ export default function MedicalRecordList() {
   });
 
   return (
-    <ScrollArea className="flex-grow flex flex-col bg-muted rounded-xl p-2 h-[calc(100vh-20rem)] sm:h-[calc(100vh-25rem)]">
+    <ScrollArea className="flex flex-col bg-muted rounded-xl p-2 h-[calc(100vh-20rem)] sm:h-[calc(100vh-25rem)]">
       <div className="space-y-2">
         {sortedRecords.map((record) => (
           <Card key={record.id} className="shadow-none rounded-lg border-none">

@@ -27,20 +27,24 @@ export const InitDialog = () => {
 
   useEffect(() => {
     if (accessToken) {
-      getUserData<MedicalRecord[]>(accessToken).then((records) => {
-        if (records && records.length > 0) {
-          importRecords(
-            records.map((record) => ({
-              ...record,
-              date: new Date(record.date),
-            }))
-          );
-          setDriveImportState("success");
-          setIsOpen(false);
-        } else {
+      getUserData<MedicalRecord[]>(accessToken)
+        .then((records) => {
+          if (records && records.length > 0) {
+            importRecords(
+              records.map((record) => ({
+                ...record,
+                date: new Date(record.date),
+              }))
+            );
+            setDriveImportState("success");
+            setIsOpen(false);
+          } else {
+            setDriveImportState("error");
+          }
+        })
+        .catch(() => {
           setDriveImportState("error");
-        }
-      });
+        });
     }
   }, [accessToken]);
 
