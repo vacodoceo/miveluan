@@ -22,6 +22,7 @@ import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 import { ChatMessage } from "./components/chat/chat";
 
+type MemoryVector = MemoryVectorStore["memoryVectors"][number];
 const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
   // Can use "nomic-ai/nomic-embed-text-v1" for more powerful but slower embeddings
