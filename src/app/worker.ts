@@ -19,6 +19,8 @@ import { ChatWebLLM } from "@langchain/community/chat_models/webllm";
 import { Document } from "@langchain/core/documents";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
+
+type MemoryVector = MemoryVectorStore["memoryVectors"][number];
 import { ChatMessage } from "./components/chat/chat";
 
 const embeddings = new HuggingFaceTransformersEmbeddings({
@@ -28,6 +30,14 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 });
 
 const vectorstore = new MemoryVectorStore(embeddings);
+
+const uniqueVectors = new Set<string>();
+
+const sha256 = async (text: string) => {
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(
+    (hash) => new Uint8Array(hash).toString()
+  );
+};
 
 const RESPONSE_SYSTEM_TEMPLATE = `You are an experienced researcher, expert at interpreting and answering questions based on provided sources. Using the provided context, answer the user's question to the best of your ability using the resources provided.
 Generate a concise answer for a given question based solely on the provided search results. You must only use information from the provided search results. Use an unbiased and journalistic tone. Combine search results together into a coherent answer. Do not repeat text, stay focused, and stop generating when you have answered the question.
@@ -71,6 +81,8 @@ const embedPDF = async (pdfBlob: Blob) => {
   const pdfLoader = new WebPDFLoader(pdfBlob, { parsedItemSeparator: " " });
   const docs = await pdfLoader.load();
 
+  console.log({docs});
+
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 500,
     chunkOverlap: 50,
@@ -78,12 +90,30 @@ const embedPDF = async (pdfBlob: Blob) => {
 
   const splitDocs = await splitter.splitDocuments(docs);
 
+  const docsWithHashes = await Promise.all(splitDocs.map(async (doc) => ({
+    hash: await sha256(doc.pageContent),
+    doc
+  })));
+
+  const uniqueSplitDocs = docsWithHashes.filter((doc) => {
+    const has = uniqueVectors.has(doc.hash);
+    if (!has) {
+      uniqueVectors.add(doc.hash);
+    }
+    return !has;
+  });
+
   self.postMessage({
     type: "log",
     data: splitDocs,
   });
 
-  await vectorstore.addDocuments(splitDocs);
+
+  await vectorstore.addDocuments(uniqueSplitDocs.map((doc) => doc.doc));
+
+  const vectors = vectorstore.memoryVectors;
+
+  return vectors;
 };
 
 const generateRAGResponse = async (
@@ -263,7 +293,11 @@ self.addEventListener("message", async (event: { data: any }) => {
 
   if (event.data.pdf) {
     try {
-      await embedPDF(event.data.pdf);
+      const vectors = await embedPDF(event.data.pdf);
+      self.postMessage({
+        type: "data",
+        data: vectors,
+      });
     } catch (e: any) {
       self.postMessage({
         type: "error",

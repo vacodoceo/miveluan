@@ -8,13 +8,20 @@ import React, {
   useState,
 } from "react";
 import { ToasterToast, useToast } from "@/hooks/use-toast";
+import type { MemoryVectorStore } from "langchain/vectorstores/memory";
+import { useAuth } from "@/app/contexts/auth.context";
+import { getVectorsFromGoogleDrive } from "@/lib/repositories/vectors/sync-vectors";
+import { VECTOR_FOLDER_NAME, VECTOR_FILE_NAME } from "@/constants";
+
+type MemoryVector = MemoryVectorStore["memoryVectors"][number];
 import { ChatMessage } from "../components/chat/chat";
 
 interface ChatWorkerContextType {
   worker: Worker | null;
   isLoading: boolean;
   queryStore: (messages: ChatMessage[]) => Promise<ReadableStream>;
-  embedPDF: (file: File, onReadyToChat?: () => void) => Promise<void>;
+  embedPDF: (file: File, onReadyToChat?: () => void) => Promise<MemoryVector[] | undefined>;
+  vectors: MemoryVector[];
 }
 
 const ChatWorkerContext = createContext<ChatWorkerContextType | undefined>(
@@ -23,8 +30,29 @@ const ChatWorkerContext = createContext<ChatWorkerContextType | undefined>(
 
 export function WorkerProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
+  const { accessToken } = useAuth();
+  const [areEmbeddingsLoaded, setAreEmbeddingsLoaded] = useState(false);
+
+  const [vectors, setVectors] = useState<MemoryVector[]>([]);
   const worker = useRef<Worker | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (areEmbeddingsLoaded) return;
+    if (!accessToken) return;
+    setAreEmbeddingsLoaded(true);
+
+    if (!areEmbeddingsLoaded) {
+      getVectorsFromGoogleDrive(
+        VECTOR_FILE_NAME,
+        VECTOR_FOLDER_NAME,
+        accessToken
+      ).then((vectors) => {
+        console.log("loaded vectors", vectors);
+        setAreEmbeddingsLoaded(true);
+      });
+    }
+  }, [accessToken]);
   const initToast = useRef<null | {
     update: (params: ToasterToast) => void;
     id: string;
@@ -128,7 +156,7 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
   const embedPDF = async (
     file: File,
     onReadyToChat?: () => void
-  ): Promise<void> => {
+  ): Promise<MemoryVector[] | undefined> => {
     if (!worker.current) {
       throw new Error("Worker is not ready.");
     }
@@ -136,8 +164,15 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
     return new Promise((resolve, reject) => {
       worker.current?.postMessage({ pdf: file });
 
+      let data: MemoryVector[] | undefined;
       const onMessageReceived = (e: any) => {
         switch (e.data.type) {
+          case "data":
+            data = e.data.data;
+            if (data) {
+              setVectors(data);
+            }
+            break;
           case "log":
             console.log(e.data);
             break;
@@ -149,7 +184,7 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
           case "complete":
             worker.current?.removeEventListener("message", onMessageReceived);
             onReadyToChat?.();
-            resolve();
+            resolve(data);
             break;
         }
       };
@@ -163,6 +198,7 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     queryStore,
     embedPDF,
+    vectors,
   };
 
   return (
