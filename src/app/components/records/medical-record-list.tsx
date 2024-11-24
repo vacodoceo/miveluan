@@ -7,9 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useMedicalRecords } from "../contexts/medical-record.context";
+import { useMedicalRecords } from "@/app/contexts/medical-record.context";
 import { Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formatFileSize = (size: number) => {
   const units = ["bytes", "KB", "MB", "GB"];
@@ -28,9 +29,9 @@ export default function MedicalRecordList() {
   const { records } = useMedicalRecords();
 
   return (
-    <div className="space-y-4">
+    <ScrollArea className="space-y-4 flex-grow flex flex-col bg-muted rounded-xl px-2">
       {records.map((record) => (
-        <Card key={record.id}>
+        <Card key={record.id} className="shadow-none rounded-lg border-none">
           <CardHeader>
             <CardTitle>{record.title}</CardTitle>
             <CardDescription>
@@ -64,6 +65,6 @@ export default function MedicalRecordList() {
           </CardContent>
         </Card>
       ))}
-    </div>
+    </ScrollArea>
   );
 }

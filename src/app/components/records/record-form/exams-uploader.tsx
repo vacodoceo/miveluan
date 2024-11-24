@@ -1,7 +1,7 @@
 import { FileCheck, Loader2 } from "lucide-react";
 
 import { useCallback, useState } from "react";
-import { useControllableState } from "../hooks/use-controllable-state";
+import { useControllableState } from "../../../hooks/use-controllable-state";
 import Dropzone, { type FileRejection } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,17 @@ import { Upload, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useChatWorker } from "@/app/context/chat-worker-context";
+import {
+  createDriveFolderIfNotExists,
+  uploadFileToDrive,
+} from "@/lib/google-drive";
+import { useAuth } from "@/app/contexts/auth.context";
+import { syncVectorsToGoogleDrive } from "@/lib/repositories/vectors/sync-vectors";
+import {
+  EXAM_FOLDER_NAME,
+  VECTOR_FILE_NAME,
+  VECTOR_FOLDER_NAME,
+} from "@/constants";
 
 interface ExamsUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: File[];
@@ -26,6 +37,8 @@ export function ExamsUploader(props: ExamsUploaderProps) {
     ...dropzoneProps
   } = props;
 
+  const { accessToken } = useAuth();
+
   const { isLoading, embedPDF } = useChatWorker();
   const { toast } = useToast();
 
@@ -36,7 +49,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
   });
 
   const onDrop = useCallback(
-    (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+    async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       const updatedFiles = files ? [...files, ...acceptedFiles] : acceptedFiles;
       setFiles(updatedFiles);
       setFilesLoading([
@@ -54,12 +67,41 @@ export function ExamsUploader(props: ExamsUploaderProps) {
       }
 
       acceptedFiles.forEach(async (file) => {
-        await embedPDF(file).then(() => {
-          setFilesLoading(filesLoading.filter((name) => name !== file.name));
-        });
+        try {
+          // First upload to Drive
+          if (accessToken) {
+            createDriveFolderIfNotExists(EXAM_FOLDER_NAME, accessToken!).then(
+              (folderId) => {
+                uploadFileToDrive(file, accessToken, folderId);
+              }
+            );
+          }
+
+          // Then process with your existing embedPDF
+          await embedPDF(file).then((vectors) => {
+            setFilesLoading(filesLoading.filter((name) => name !== file.name));
+            if (!vectors || !accessToken) return;
+            createDriveFolderIfNotExists(VECTOR_FOLDER_NAME, accessToken).then(
+              (csvFolderId) => {
+                syncVectorsToGoogleDrive(
+                  vectors,
+                  VECTOR_FILE_NAME,
+                  csvFolderId,
+                  accessToken
+                );
+              }
+            );
+          });
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          toast({
+            title: "Upload Error",
+            description: `Failed to upload ${file.name}`,
+            variant: "destructive",
+          });
+        }
       });
     },
-
     [files, setFiles, toast, embedPDF, filesLoading]
   );
 
@@ -74,79 +116,57 @@ export function ExamsUploader(props: ExamsUploaderProps) {
 
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden">
-      <div className="block sm:hidden flex justify-center">
-        <Button
-          onClick={() => document.getElementById("fileInput")?.click()}
-          disabled={isDisabled}
-        >
-          <Upload className="mr-2 h-5 w-5" />
-          Subir archivos
-        </Button>
-        <input
-          id="fileInput"
-          type="file"
-          accept="application/pdf"
-          multiple
-          onChange={(e) => {
-            const files = Array.from(e.target.files || []);
-            onDrop(files, []);
-          }}
-          className="hidden"
-        />
-      </div>
-      <div className="hidden sm:block">
-        <Dropzone
-          onDrop={onDrop}
-          accept={{ "application/pdf": [] }}
-          disabled={isDisabled}
-        >
-          {({ getRootProps, getInputProps, isDragActive }) => (
-            <div
-              {...getRootProps()}
-              className={cn(
-                "group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25",
-                "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                isDragActive && "border-muted-foreground/50",
-                isDisabled && "pointer-events-none opacity-60",
-                className
-              )}
-              {...dropzoneProps}
-            >
-              <input {...getInputProps()} />
-              {isDragActive ? (
-                <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                  <div className="rounded-full border border-dashed p-3">
-                    <Upload
-                      className="size-7 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                  </div>
+      <Dropzone
+        onDrop={onDrop}
+        accept={{ "application/pdf": [] }}
+        disabled={isDisabled}
+      >
+        {({ getRootProps, getInputProps, isDragActive }) => (
+          <div
+            {...getRootProps()}
+            className={cn(
+              "bg-white group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border border-border px-5 py-2.5 text-center transition",
+              "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              isDragActive && "border-muted-foreground/50",
+              isDisabled && "pointer-events-none opacity-60",
+              className
+            )}
+            {...dropzoneProps}
+          >
+            <input {...getInputProps()} />
+            {isDragActive ? (
+              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+                <div className="rounded-full border border-dashed p-3">
+                  <Upload
+                    className="size-7 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </div>
+                <p className="font-medium text-muted-foreground">
+                  Suelta los archivos aquí
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+                <div className="rounded-full border border-dashed p-3">
+                  <Upload
+                    className="size-7 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div className="flex flex-col gap-px">
                   <p className="font-medium text-muted-foreground">
-                    Drop the files here
+                    Seleccionar archivos
+                  </p>
+                  <p className="text-sm text-muted-foreground/70">
+                    Formatos soportados: PDF
                   </p>
                 </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                  <div className="rounded-full border border-dashed p-3">
-                    <Upload
-                      className="size-7 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-px">
-                    <p className="font-medium text-muted-foreground">
-                      Drag {`'n'`} drop files here, or click to select files
-                    </p>
-                    <p className="text-sm text-muted-foreground/70">
-                      Puedes subir tus exámenes en formato PDF
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </Dropzone>
-      </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Dropzone>
       {files?.length ? (
         <ScrollArea className="h-fit w-full px-3">
           <div className="flex max-h-48 flex-col gap-4">
