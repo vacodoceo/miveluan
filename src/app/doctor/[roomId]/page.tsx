@@ -23,6 +23,20 @@ export default function ReceiverPage({
     return <div>Loading...</div>;
   }
 
+  // Calculate overall progress
+  const calculateOverallProgress = () => {
+    if (filesProgress.length === 0) return 0;
+    const totalProgress = filesProgress.reduce((sum, file) => {
+      return sum + (file.status === "completed" ? 100 : file.progress);
+    }, 0);
+    return totalProgress / filesProgress.length;
+  };
+
+  const overallProgress = calculateOverallProgress();
+  const completedFiles = filesProgress.filter(
+    (file) => file.status === "completed"
+  ).length;
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
@@ -45,31 +59,48 @@ export default function ReceiverPage({
             <div className="space-y-4">
               {filesProgress.length > 0 ? (
                 <div className="space-y-4">
-                  {filesProgress.map((file) => (
-                    <div key={file.fileName} className="w-full">
-                      <div className="flex items-center gap-2 mb-2">
+                  {/* Overall progress section */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">
+                        Progreso general ({completedFiles} de{" "}
+                        {filesProgress.length} archivos)
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {Math.round(overallProgress)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="h-2 rounded-full bg-blue-500 transition-all duration-300"
+                        style={{ width: `${overallProgress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* File list */}
+                  <div className="space-y-2">
+                    {filesProgress.map((file) => (
+                      <div
+                        key={`${file.fileName}-${file.status}`}
+                        className="flex items-center gap-2"
+                      >
                         {file.status === "completed" ? (
-                          <CheckCircle className="w-5 h-5 text-green-500" />
+                          <CheckCircle className="w-4 h-4 text-green-500" />
                         ) : (
-                          <Download className="w-5 h-5 text-blue-500" />
+                          <Download className="w-4 h-4 text-blue-500" />
                         )}
-                        <span className="text-sm text-gray-600 truncate">
+                        <span className="text-sm text-gray-600 truncate flex-1">
                           {file.fileName}
                         </span>
-                        <span className="text-sm text-gray-500 ml-auto">
+                        <span className="text-xs text-gray-500">
                           {file.status === "completed"
-                            ? "100%"
+                            ? "Completado"
                             : `${Math.round(file.progress)}%`}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${file.progress}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-lg">

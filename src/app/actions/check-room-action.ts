@@ -1,6 +1,6 @@
 "use server";
 
-import { checkRoom } from "@/lib/gateways/check-room";
+import { checkRoom } from "@/lib/repositories/rooms";
 import { redirect } from "next/navigation";
 
 export const checkRoomAction = async (roomId: string) => {

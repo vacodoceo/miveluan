@@ -22,6 +22,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     role === "sender" ? "Esperando al doctor..." : "Esperando al paciente..."
   );
   const [filesProgress, setFilesProgress] = useState<FileProgress[]>([]);
+  const [isReceiverConnected, setIsReceiverConnected] = useState(false);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
@@ -74,7 +75,6 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         );
       }
 
-      // Mark current file as completed
       setFilesProgress((prev) =>
         prev.map((fp) =>
           fp.fileName === file.name
@@ -83,11 +83,9 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         )
       );
 
-      // Remove the processed file from queue
       fileQueueRef.current.shift();
       isTransferringRef.current = false;
 
-      // Process next file if available
       processNextFile();
     } catch (error) {
       setFilesProgress((prev) =>
@@ -106,10 +104,12 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
 
       channel.onopen = () => {
         setConnectionStatus(onOpenText);
+        setIsReceiverConnected(true);
       };
 
       channel.onclose = () => {
         setConnectionStatus(onCloseText);
+        setIsReceiverConnected(false);
       };
 
       channel.onmessage = async (event) => {
@@ -216,6 +216,18 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         );
       };
     }
+
+    peerConnection.oniceconnectionstatechange = () => {
+      if (peerConnection.iceConnectionState === "connected") {
+        setIsReceiverConnected(true);
+      } else if (
+        peerConnection.iceConnectionState === "disconnected" ||
+        peerConnection.iceConnectionState === "failed" ||
+        peerConnection.iceConnectionState === "closed"
+      ) {
+        setIsReceiverConnected(false);
+      }
+    };
   }, [role, socket, roomId, setupDataChannel]);
 
   const joinRoom = useCallback(async () => {
@@ -232,7 +244,6 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   }, [initiatePeerConnection, role, roomId, socket]);
 
   const sendFiles = async (files: File[]) => {
-    // Add new files to the queue and progress tracking
     fileQueueRef.current.push(...files);
     setFilesProgress((prev) => [
       ...prev,
@@ -243,11 +254,46 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       })),
     ]);
 
-    // Start processing if not already transferring
     if (!isTransferringRef.current) {
       processNextFile();
     }
   };
+
+  const disconnect = useCallback(async () => {
+    // Close data channel if it exists
+    if (dataChannelRef.current) {
+      dataChannelRef.current.close();
+      dataChannelRef.current = null;
+    }
+
+    // Close peer connection if it exists
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+      peerConnectionRef.current = null;
+    }
+
+    // Reset all states
+    setConnected(false);
+    setIsReceiverConnected(false);
+    // Set the initial waiting status based on role
+    setConnectionStatus(
+      role === "sender" ? "Esperando al doctor..." : "Esperando al paciente..."
+    );
+    setFilesProgress([]);
+
+    // Clear all refs
+    receivedChunksRef.current = [];
+    receivedSizeRef.current = 0;
+    currentFileMetadataRef.current = null;
+    fileQueueRef.current = [];
+    isTransferringRef.current = false;
+
+    // Leave room and reinitialize connection
+    if (socket) {
+      socket.emit("leave-room", roomId);
+      await joinRoom();
+    }
+  }, [joinRoom, role, roomId, socket]);
 
   useEffect(() => {
     if (!socket) return;
@@ -289,10 +335,18 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         hasReceiver: boolean;
         hasSender: boolean;
       }) => {
-        if (role === "sender" && hasReceiver) {
-          setConnectionStatus("Hubo un error al conectar con el doctor.");
-        } else if (role === "receiver" && hasSender) {
-          setConnectionStatus("Hubo un error al conectar con el paciente");
+        if (role === "sender") {
+          // Set appropriate message for sender role
+          setConnectionStatus(
+            hasReceiver ? "Conectado al doctor" : "Esperando al doctor..."
+          );
+          setIsReceiverConnected(hasReceiver);
+        } else if (role === "receiver") {
+          // Set appropriate message for receiver role
+          setConnectionStatus(
+            hasSender ? "Conectado al paciente" : "Esperando al paciente..."
+          );
+          setIsReceiverConnected(hasSender);
         }
       }
     );
@@ -303,6 +357,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       socket.off("signal");
       socket.off("room-update");
       peerConnectionRef.current?.close();
+      setIsReceiverConnected(false);
     };
   }, [socket, role, roomId, joinRoom]);
 
@@ -311,5 +366,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     connectionStatus,
     filesProgress,
     sendFiles,
+    isReceiverConnected,
+    disconnect,
   };
 };
