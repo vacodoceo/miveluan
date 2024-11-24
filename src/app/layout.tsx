@@ -6,6 +6,7 @@ import { WorkerProvider } from "@/app/context/chat-worker-context";
 import { Navbar } from "@/components/navbar";
 import { AuthProvider } from "./contexts/auth.context";
 import { MedicalRecordsProvider } from "./contexts/medical-record.context";
+import { Footer } from "@/components/footer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -39,6 +40,7 @@ export default async function RootLayout({
           <MedicalRecordsProvider>
             <WorkerProvider>{children}</WorkerProvider>
           </MedicalRecordsProvider>
+          <Footer />
         </AuthProvider>
         <Toaster />
       </body>
