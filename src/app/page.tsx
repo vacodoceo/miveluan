@@ -1,28 +1,51 @@
-import { Metadata } from "next";
+"use client";
+
 import MedicalRecordForm from "./components/medical-record-form";
 import MedicalRecordList from "./components/medical-record-list";
 import ShareButton from "./components/share-button";
-
-export const metadata: Metadata = {
-  title: "Vita",
-  description: "Lleva un seguimiento de tu historial médico y exámenes",
-};
+import { Chat } from "./components/chat/chat";
+import { useAuth } from "./contexts/auth.context";
+import { Button } from "@/components/ui/button";
+import { Radio } from "lucide-react";
+import MobileTabs from "./components/mobile-tabs";
 
 export default function Home() {
+  const { user, isAuthenticated } = useAuth();
+
+  if (!isAuthenticated || !user) {
+    return (
+      <main className="container mx-auto p-4 space-y-8 flex-grow">
+        <div className="flex justify-center mt-8">
+          <Button className="px-8 py-6 text-lg bg-secondary">
+            <Radio className="mr-2 h-5 w-5" />
+            Conectar con paciente
+          </Button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="container mx-auto p-4 space-y-8">
       <div className="flex justify-center">
         <ShareButton />
       </div>
-      <h1 className="text-3xl font-bold text-center mb-8">Historial médico</h1>
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Agregar nueva entrada</h2>
-          <MedicalRecordForm />
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
-          <MedicalRecordList />
+
+      <div className="block sm:hidden">
+        <MobileTabs />
+      </div>
+
+      <div className="hidden sm:block">
+        <MedicalRecordForm />
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
+            <MedicalRecordList />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Chat con tu IA</h2>
+            <Chat />
+          </div>
         </div>
       </div>
     </main>

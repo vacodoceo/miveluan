@@ -7,29 +7,20 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { ToasterToast, useToast } from "@/hooks/use-toast";
 import type { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { useAuth } from "../contexts/auth/auth.context";
+import { useAuth } from "@/app/contexts/auth.context";
 import { getVectorsFromGoogleDrive } from "@/lib/repositories/vectors/sync-vectors";
 import { VECTOR_FOLDER_NAME, VECTOR_FILE_NAME } from "@/constants";
 
 type MemoryVector = MemoryVectorStore["memoryVectors"][number];
-
-type ChatWindowMessage = {
-  content: string;
-  role: "user" | "assistant";
-  runId?: string;
-  traceUrl?: string;
-};
+import { ChatMessage } from "../components/chat/chat";
 
 interface ChatWorkerContextType {
   worker: Worker | null;
   isLoading: boolean;
-  queryStore: (messages: ChatWindowMessage[]) => Promise<ReadableStream>;
-  embedPDF: (
-    file: File,
-    onReadyToChat?: () => void
-  ) => Promise<MemoryVector[] | undefined>;
+  queryStore: (messages: ChatMessage[]) => Promise<ReadableStream>;
+  embedPDF: (file: File, onReadyToChat?: () => void) => Promise<MemoryVector[] | undefined>;
   vectors: MemoryVector[];
 }
 
@@ -62,18 +53,25 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
       });
     }
   }, [accessToken]);
+  const initToast = useRef<null | {
+    update: (params: ToasterToast) => void;
+    id: string;
+    dismiss: () => void;
+  }>(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!worker.current) {
       worker.current = new Worker(new URL("../worker.ts", import.meta.url), {
         type: "module",
       });
-      setIsLoading(false);
     }
+
+    setIsLoading(false);
   }, []);
 
   const queryStore = async (
-    messages: ChatWindowMessage[]
+    messages: ChatMessage[]
   ): Promise<ReadableStream> => {
     if (!worker.current) {
       throw new Error("Worker is not ready.");
@@ -86,15 +84,7 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        const payload: Record<string, any> = {
-          messages,
-          modelConfig: {
-            model: "Phi-3.5-mini-instruct-q4f16_1-MLC",
-            chatOptions: {
-              temperature: 0.1,
-            },
-          },
-        };
+        const payload: Record<string, any> = { messages };
 
         if (
           process.env.NEXT_PUBLIC_LANGCHAIN_TRACING_V2 === "true" &&
@@ -115,12 +105,29 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
               console.log(e.data);
               break;
             case "init_progress":
-              toast({
-                title: "Cargando modelos...",
-                description: `Este proceso puede durar unos minutos: ${
-                  e.data.data.progress * 100
-                }%`,
-              });
+              setIsLoading(true);
+              if (initToast.current) {
+                initToast.current.update({
+                  id: initToast.current.id,
+                  title: "Cargando modelos",
+                  description: (
+                    <div className="space-y-2 w-full">
+                      <p>Este proceso puede durar unos segundos</p>
+                    </div>
+                  ),
+                });
+              } else {
+                const { update, id, dismiss } = toast({
+                  title: "Cargando modelos",
+                  description: (
+                    <div className="space-y-2 w-full">
+                      <p>Este proceso puede durar unos segundos</p>
+                    </div>
+                  ),
+                });
+                initToast.current = { update, id, dismiss };
+                console.log("hola");
+              }
               break;
             case "chunk":
               controller.enqueue(e.data.data);
@@ -133,6 +140,10 @@ export function WorkerProvider({ children }: { children: React.ReactNode }) {
             case "complete":
               worker.current?.removeEventListener("message", onMessageReceived);
               controller.close();
+              if (initToast.current) {
+                initToast.current.dismiss();
+              }
+              setIsLoading(false);
               break;
           }
         };

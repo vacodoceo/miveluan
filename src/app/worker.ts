@@ -21,6 +21,7 @@ import { RunnableConfig } from "@langchain/core/runnables";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 type MemoryVector = MemoryVectorStore["memoryVectors"][number];
+import { ChatMessage } from "./components/chat/chat";
 
 const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
@@ -38,16 +39,43 @@ const sha256 = async (text: string) => {
   );
 };
 
-type ChatWindowMessage = {
-  content: string;
-  role: "user" | "assistant";
-  runId?: string;
-  traceUrl?: string;
-};
-
-const WEBLLM_RESPONSE_SYSTEM_TEMPLATE = `You are an experienced researcher, expert at interpreting and answering questions based on provided sources. Using the provided context, answer the user's question to the best of your ability using the resources provided.
+const RESPONSE_SYSTEM_TEMPLATE = `You are an experienced researcher, expert at interpreting and answering questions based on provided sources. Using the provided context, answer the user's question to the best of your ability using the resources provided.
 Generate a concise answer for a given question based solely on the provided search results. You must only use information from the provided search results. Use an unbiased and journalistic tone. Combine search results together into a coherent answer. Do not repeat text, stay focused, and stop generating when you have answered the question.
 If there is nothing in the context relevant to the question at hand, just say "Hmm, I'm not sure." Don't try to make up an answer.`;
+
+const modelConfig = {
+  model: "Phi-3.5-mini-instruct-q4f16_1-MLC",
+  chatOptions: {
+    temperature: 0.1,
+  },
+};
+let webllmModel: ChatWebLLM;
+
+const initializeModel = async () => {
+  console.log("Initializing WebLLM model...");
+
+  webllmModel = new ChatWebLLM(modelConfig);
+
+  try {
+    await webllmModel.initialize((event) =>
+      self.postMessage({ type: "init_progress", data: event })
+    );
+
+    self.postMessage({ type: "ready" });
+    console.log("Model initialized successfully");
+
+    self.postMessage({ type: "complete", data: "OK" });
+  } catch (error) {
+    console.error("Model initialization failed:", error);
+    self.postMessage({
+      type: "error",
+      error: `Failed to initialize model: ${error}`,
+    });
+  }
+};
+
+// Start initialization immediately
+initializeModel();
 
 const embedPDF = async (pdfBlob: Blob) => {
   const pdfLoader = new WebPDFLoader(pdfBlob, { parsedItemSeparator: " " });
@@ -89,7 +117,7 @@ const embedPDF = async (pdfBlob: Blob) => {
 };
 
 const generateRAGResponse = async (
-  messages: ChatWindowMessage[],
+  messages: ChatMessage[],
   {
     model,
     devModeTracer,
@@ -166,7 +194,7 @@ const generateRAGResponse = async (
       context: string;
       messages: BaseMessage[];
     }>([
-      ["system", WEBLLM_RESPONSE_SYSTEM_TEMPLATE],
+      ["system", RESPONSE_SYSTEM_TEMPLATE],
       [
         "user",
         "When responding to me, use the following documents as context:\n<context>\n{context}\n</context>",
@@ -245,7 +273,6 @@ const generateRAGResponse = async (
 
 // Listen for messages from the main thread
 self.addEventListener("message", async (event: { data: any }) => {
-  console.log("RECEIVED MESSAGE");
   self.postMessage({
     type: "log",
     data: `Received data!`,
@@ -279,12 +306,9 @@ self.addEventListener("message", async (event: { data: any }) => {
       throw e;
     }
   } else {
-    const modelConfig = event.data.modelConfig;
-    const webllmModel = new ChatWebLLM(modelConfig);
     await webllmModel.initialize((event) =>
       self.postMessage({ type: "init_progress", data: event })
     );
-    // Best guess at Phi-3.5 tokens
     const model = webllmModel.bind({
       stop: ["\nInstruct:", "Instruct:", "<hr>", "\n<hr>"],
     });

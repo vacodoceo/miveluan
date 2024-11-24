@@ -1,68 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useMedicalRecords } from "../contexts/medical-record.context";
+import { Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// This is a mock data structure. In a real application, you'd fetch this from your backend.
-const mockData = [
-  {
-    id: 1,
-    type: "text",
-    content: "Visited Dr. Smith for annual checkup",
-    date: "2023-05-15",
-  },
-  {
-    id: 2,
-    type: "file",
-    content: "blood_test_results.pdf",
-    date: "2023-05-16",
-  },
-  {
-    id: 3,
-    type: "text",
-    content: "Started new medication for blood pressure",
-    date: "2023-05-20",
-  },
-];
+const formatFileSize = (size: number) => {
+  const units = ["bytes", "KB", "MB", "GB"];
+  let value = size;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+
+  return `${value.toFixed(unitIndex === 0 ? 0 : 2)} ${units[unitIndex]}`;
+};
 
 export default function MedicalRecordList() {
-  const [records] = useState(mockData);
-  const [summary, setSummary] = useState("");
-
-  const generateSummary = () => {
-    // In a real application, this would be an API call to your AI service
-    setSummary(
-      "Basado en los exámenes y entradas subidos, tu estado de salud parece estar bien. Se recomienda realizar revisiones regulares y adherencia a la medicación."
-    );
-  };
+  const { records } = useMedicalRecords();
 
   return (
     <div className="space-y-4">
       {records.map((record) => (
         <Card key={record.id}>
           <CardHeader>
-            <CardTitle>{record.type === "text" ? "Note" : "File"}</CardTitle>
+            <CardTitle>{record.title}</CardTitle>
+            <CardDescription>
+              {record.date.toLocaleDateString("es-ES", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p>{record.content}</p>
-            <p className="text-sm text-gray-500 mt-2">Fecha: {record.date}</p>
+          <CardContent className="space-y-2">
+            {record.description && <p>{record.description}</p>}
+            {record.files.length > 0 && (
+              <div className="flex gap-2 flex-col">
+                {record.files.map((file) => (
+                  <div key={file.name} className="flex gap-2 items-center">
+                    <FileText className="w-5 h-5 text-primary" />
+                    <p className="font-medium flex-1">{file.name}</p>
+                    <div className="border border-border py-0.5 px-2 flex gap-2 items-center rounded-sm">
+                      <p className="text-sm font-medium">
+                        {formatFileSize(file.size)}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       ))}
-      <Button onClick={generateSummary} className="w-full">
-        Generar resumen con IA
-      </Button>
-      {summary && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Resumen con IA</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{summary}</p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

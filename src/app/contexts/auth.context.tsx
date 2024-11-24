@@ -67,8 +67,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
         setAccessToken(userInfo.accessToken);
       }
     } catch (error) {
-      console.error("Auth error:", error);
-
       throw error;
     }
   };
@@ -95,8 +93,6 @@ export function AuthProvider({ children }: AuthProviderProps): JSX.Element {
     isAuthenticated: !!user,
     accessToken,
   };
-
-  console.log("AuthContextProvider", value);
 
   return (
     <AuthContext.Provider value={value}>

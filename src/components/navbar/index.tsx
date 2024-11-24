@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/app/contexts/auth/auth.context";
+import { useAuth } from "@/app/contexts/auth.context";
 
 export const Navbar = () => {
   const { user, signIn, signOut, isAuthenticated } = useAuth();
@@ -46,18 +46,26 @@ export const Navbar = () => {
         />
       </Link>
       <div className="flex items-center space-x-4">
-        <span className="text-sm font-medium">{user.displayName}</span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={user.photoURL ?? ""}
-                  alt={user.displayName!}
-                />
-                <AvatarFallback>{user.displayName!.charAt(0)}</AvatarFallback>
-              </Avatar>
-            </Button>
+            <div className="relative">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8 border-2 border-primary">
+                  <AvatarImage
+                    src={user.photoURL ?? ""}
+                    alt={user.displayName!}
+                  />
+                  <AvatarFallback>{user.displayName!.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </Button>
+              <Image
+                src="/google-icon-logo-svgrepo-com.svg"
+                alt="Google logo"
+                width={16}
+                height={16}
+                className="absolute bottom-0 right-0"
+              />
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">

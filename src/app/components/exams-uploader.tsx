@@ -13,7 +13,7 @@ import {
   createDriveFolderIfNotExists,
   uploadFileToDrive,
 } from "@/lib/google-drive";
-import { useAuth } from "@/app/contexts/auth/auth.context";
+import { useAuth } from "@/app/contexts/auth.context";
 import { syncVectorsToGoogleDrive } from "@/lib/repositories/vectors/sync-vectors";
 import {
   EXAM_FOLDER_NAME,
@@ -39,7 +39,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
 
   const { accessToken } = useAuth();
 
-  const { isLoading, embedPDF, vectors } = useChatWorker();
+  const { isLoading, embedPDF } = useChatWorker();
   const { toast } = useToast();
 
   const [filesLoading, setFilesLoading] = useState<string[]>([]);
@@ -113,59 +113,82 @@ export function ExamsUploader(props: ExamsUploaderProps) {
   }
 
   const isDisabled = disabled || isLoading;
+
   return (
     <div className="relative flex flex-col gap-6 overflow-hidden">
-      <Dropzone
-        onDrop={onDrop}
-        accept={{ "application/pdf": [] }}
-        disabled={isDisabled}
-      >
-        {({ getRootProps, getInputProps, isDragActive }) => (
-          <div
-            {...getRootProps()}
-            className={cn(
-              "group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25",
-              "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              isDragActive && "border-muted-foreground/50",
-              isDisabled && "pointer-events-none opacity-60",
-              className
-            )}
-            {...dropzoneProps}
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                <div className="rounded-full border border-dashed p-3">
-                  <Upload
-                    className="size-7 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                </div>
-                <p className="font-medium text-muted-foreground">
-                  Drop the files here
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
-                <div className="rounded-full border border-dashed p-3">
-                  <Upload
-                    className="size-7 text-muted-foreground"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="flex flex-col gap-px">
+      <div className="block sm:hidden flex justify-center">
+        <Button
+          onClick={() => document.getElementById("fileInput")?.click()}
+          disabled={isDisabled}
+        >
+          <Upload className="mr-2 h-5 w-5" />
+          Subir archivos
+        </Button>
+        <input
+          id="fileInput"
+          type="file"
+          accept="application/pdf"
+          multiple
+          onChange={(e) => {
+            const files = Array.from(e.target.files || []);
+            onDrop(files, []);
+          }}
+          className="hidden"
+        />
+      </div>
+      <div className="hidden sm:block">
+        <Dropzone
+          onDrop={onDrop}
+          accept={{ "application/pdf": [] }}
+          disabled={isDisabled}
+        >
+          {({ getRootProps, getInputProps, isDragActive }) => (
+            <div
+              {...getRootProps()}
+              className={cn(
+                "group relative grid h-52 w-full cursor-pointer place-items-center rounded-lg border-2 border-dashed border-muted-foreground/25 px-5 py-2.5 text-center transition hover:bg-muted/25",
+                "ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                isDragActive && "border-muted-foreground/50",
+                isDisabled && "pointer-events-none opacity-60",
+                className
+              )}
+              {...dropzoneProps}
+            >
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+                  <div className="rounded-full border border-dashed p-3">
+                    <Upload
+                      className="size-7 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                  </div>
                   <p className="font-medium text-muted-foreground">
-                    Drag {`'n'`} drop files here, or click to select files
-                  </p>
-                  <p className="text-sm text-muted-foreground/70">
-                    Puedes subir tus exámenes en formato PDF
+                    Drop the files here
                   </p>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-      </Dropzone>
+              ) : (
+                <div className="flex flex-col items-center justify-center gap-4 sm:px-5">
+                  <div className="rounded-full border border-dashed p-3">
+                    <Upload
+                      className="size-7 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-px">
+                    <p className="font-medium text-muted-foreground">
+                      Drag {`'n'`} drop files here, or click to select files
+                    </p>
+                    <p className="text-sm text-muted-foreground/70">
+                      Puedes subir tus exámenes en formato PDF
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Dropzone>
+      </div>
       {files?.length ? (
         <ScrollArea className="h-fit w-full px-3">
           <div className="flex max-h-48 flex-col gap-4">

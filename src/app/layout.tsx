@@ -4,7 +4,9 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { WorkerProvider } from "@/app/context/chat-worker-context";
 import { Navbar } from "@/components/navbar";
-import { AuthProvider } from "./contexts/auth/auth.context";
+import { AuthProvider } from "./contexts/auth.context";
+import { MedicalRecordsProvider } from "./contexts/medical-record.context";
+import { Footer } from "@/components/footer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,11 +33,14 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
         <AuthProvider>
           <Navbar />
-          <WorkerProvider>{children}</WorkerProvider>
+          <MedicalRecordsProvider>
+            <WorkerProvider>{children}</WorkerProvider>
+          </MedicalRecordsProvider>
+          <Footer />
         </AuthProvider>
         <Toaster />
       </body>
