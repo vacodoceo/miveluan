@@ -14,8 +14,6 @@ export const checkRoom = async (
   });
 
   if (!room.ok) {
-    console.log(room.text());
-
     throw new Error("Error checking room");
   }
 
