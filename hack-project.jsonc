@@ -1,0 +1,6 @@
+{ 
+    "project_name": "vita",
+    "oneliner": "Tu salud en tus manos: empodérate al gestionar y compartir tu información médica con facilidad.",
+    "logo_url": "https://github.com/vacodoceo/miveluan/blob/master/src/assets/vita-logo.png",
+    "app_url": "https://vita-5.vercel.app/"
+}
