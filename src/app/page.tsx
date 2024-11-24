@@ -35,7 +35,7 @@ export default function Home() {
             <h2 className="text-2xl font-semibold">Historial médico</h2>
             <MedicalRecordList />
             <div className="grid grid-cols-2 gap-2">
-              <ShareMedicalRecordDrawer />
+              <ShareMedicalRecordDrawer files={[]} />
               <DrawerDialogRecordForm />
             </div>
           </div>

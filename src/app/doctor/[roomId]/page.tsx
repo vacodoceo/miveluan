@@ -13,7 +13,7 @@ export default function ReceiverPage({
 }) {
   const roomId = params.roomId;
 
-  const { connected, connectionStatus, progress, currentFileName } = useWebRTC({
+  const { connected, connectionStatus, filesProgress } = useWebRTC({
     serverUrl: SERVER_URL,
     role: "receiver",
     roomId: roomId as string,
@@ -27,8 +27,8 @@ export default function ReceiverPage({
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Receive File</h1>
-          <p className="mt-2 text-sm text-gray-600">Room ID: {roomId}</p>
+          <h1 className="text-2xl font-bold text-gray-900">Recibir archivos</h1>
+          <p className="mt-2 text-sm text-gray-600">Código de sala: {roomId}</p>
         </div>
 
         <div className="space-y-6">
@@ -43,30 +43,39 @@ export default function ReceiverPage({
 
           {connected ? (
             <div className="space-y-4">
-              {currentFileName ? (
-                <div className="w-full">
-                  <div className="flex items-center gap-2 mb-2">
-                    {progress === 100 ? (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <Download className="w-5 h-5 text-blue-500" />
-                    )}
-                    <span className="text-sm text-gray-600">
-                      {currentFileName}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+              {filesProgress.length > 0 ? (
+                <div className="space-y-4">
+                  {filesProgress.map((file) => (
+                    <div key={file.fileName} className="w-full">
+                      <div className="flex items-center gap-2 mb-2">
+                        {file.status === "completed" ? (
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                        ) : (
+                          <Download className="w-5 h-5 text-blue-500" />
+                        )}
+                        <span className="text-sm text-gray-600 truncate">
+                          {file.fileName}
+                        </span>
+                        <span className="text-sm text-gray-500 ml-auto">
+                          {file.status === "completed"
+                            ? "100%"
+                            : `${Math.round(file.progress)}%`}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${file.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-lg">
                   <Download className="w-8 h-8 text-gray-400" />
                   <span className="text-sm text-gray-500">
-                    Waiting for file...
+                    Esperando archivos...
                   </span>
                 </div>
               )}
@@ -75,7 +84,7 @@ export default function ReceiverPage({
             <div className="flex items-center gap-2 p-4 bg-yellow-50 rounded-lg">
               <AlertTriangle className="w-5 h-5 text-yellow-400" />
               <span className="text-sm text-yellow-700">
-                Connecting to sender...
+                Conectando con paciente...
               </span>
             </div>
           )}

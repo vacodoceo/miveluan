@@ -9,20 +9,27 @@ interface UseWebRTCProps {
   roomId: string;
 }
 
+interface FileProgress {
+  fileName: string;
+  progress: number;
+  status: "pending" | "transferring" | "completed" | "error";
+}
+
 export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(
     role === "sender" ? "Esperando al doctor..." : "Esperando al paciente..."
   );
-  const [progress, setProgress] = useState(0);
-  const [currentFileName, setCurrentFileName] = useState<string>("");
+  const [filesProgress, setFilesProgress] = useState<FileProgress[]>([]);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const receivedChunksRef = useRef<ArrayBuffer[]>([]);
   const receivedSizeRef = useRef(0);
   const currentFileMetadataRef = useRef<any>(null);
+  const fileQueueRef = useRef<File[]>([]);
+  const isTransferringRef = useRef(false);
 
   useEffect(() => {
     const newSocket = io(serverUrl);
@@ -32,6 +39,66 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
       newSocket.close();
     };
   }, [serverUrl]);
+
+  const processNextFile = useCallback(async () => {
+    if (isTransferringRef.current || fileQueueRef.current.length === 0) return;
+
+    isTransferringRef.current = true;
+    const file = fileQueueRef.current[0];
+
+    try {
+      if (!dataChannelRef.current) throw new Error("No data channel available");
+
+      const metadata = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+
+      dataChannelRef.current.send(JSON.stringify(metadata));
+
+      const arrayBuffer = await file.arrayBuffer();
+      let sent = 0;
+
+      for (let i = 0; i < arrayBuffer.byteLength; i += CHUNK_SIZE) {
+        const chunk = arrayBuffer.slice(i, i + CHUNK_SIZE);
+        dataChannelRef.current.send(chunk);
+        sent += chunk.byteLength;
+
+        setFilesProgress((prev) =>
+          prev.map((fp) =>
+            fp.fileName === file.name
+              ? { ...fp, progress: (sent / arrayBuffer.byteLength) * 100 }
+              : fp
+          )
+        );
+      }
+
+      // Mark current file as completed
+      setFilesProgress((prev) =>
+        prev.map((fp) =>
+          fp.fileName === file.name
+            ? { ...fp, status: "completed", progress: 100 }
+            : fp
+        )
+      );
+
+      // Remove the processed file from queue
+      fileQueueRef.current.shift();
+      isTransferringRef.current = false;
+
+      // Process next file if available
+      processNextFile();
+    } catch (error) {
+      setFilesProgress((prev) =>
+        prev.map((fp) =>
+          fp.fileName === file.name ? { ...fp, status: "error" } : fp
+        )
+      );
+      console.error("Error sending file:", error);
+      isTransferringRef.current = false;
+    }
+  }, []);
 
   const setupDataChannel = useCallback(
     (channel: RTCDataChannel, onOpenText: string, onCloseText: string) => {
@@ -49,10 +116,16 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
         if (typeof event.data === "string") {
           const metadata = JSON.parse(event.data);
           currentFileMetadataRef.current = metadata;
-          setCurrentFileName(metadata.name);
+          setFilesProgress((prev) => [
+            ...prev,
+            {
+              fileName: metadata.name,
+              progress: 0,
+              status: "transferring",
+            },
+          ]);
           receivedChunksRef.current = [];
           receivedSizeRef.current = 0;
-          setProgress(0);
         } else {
           receivedChunksRef.current.push(event.data);
           receivedSizeRef.current += event.data.byteLength;
@@ -60,7 +133,14 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
           const progress =
             (receivedSizeRef.current / currentFileMetadataRef.current.size) *
             100;
-          setProgress(progress);
+
+          setFilesProgress((prev) =>
+            prev.map((fp) =>
+              fp.fileName === currentFileMetadataRef.current.name
+                ? { ...fp, progress }
+                : fp
+            )
+          );
 
           socket?.emit("chunk-received", {
             roomId,
@@ -75,8 +155,14 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
             a.download = currentFileMetadataRef.current.name;
             a.click();
             URL.revokeObjectURL(url);
-            setProgress(0);
-            setCurrentFileName("");
+
+            setFilesProgress((prev) =>
+              prev.map((fp) =>
+                fp.fileName === currentFileMetadataRef.current.name
+                  ? { ...fp, status: "completed", progress: 100 }
+                  : fp
+              )
+            );
           }
         }
       };
@@ -145,30 +231,22 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
     });
   }, [initiatePeerConnection, role, roomId, socket]);
 
-  const sendFile = async (file: File) => {
-    if (!dataChannelRef.current) return;
-    setCurrentFileName(file.name);
+  const sendFiles = async (files: File[]) => {
+    // Add new files to the queue and progress tracking
+    fileQueueRef.current.push(...files);
+    setFilesProgress((prev) => [
+      ...prev,
+      ...files.map((file) => ({
+        fileName: file.name,
+        progress: 0,
+        status: "pending" as const,
+      })),
+    ]);
 
-    const metadata = {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    };
-
-    dataChannelRef.current.send(JSON.stringify(metadata));
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const arrayBuffer = e.target!.result as ArrayBuffer;
-      let sent = 0;
-      for (let i = 0; i < arrayBuffer.byteLength; i += CHUNK_SIZE) {
-        const chunk = arrayBuffer.slice(i, i + CHUNK_SIZE);
-        dataChannelRef.current?.send(chunk);
-        sent += chunk.byteLength;
-        setProgress((sent / arrayBuffer.byteLength) * 100);
-      }
-    };
-    reader.readAsArrayBuffer(file);
+    // Start processing if not already transferring
+    if (!isTransferringRef.current) {
+      processNextFile();
+    }
   };
 
   useEffect(() => {
@@ -231,8 +309,7 @@ export const useWebRTC = ({ serverUrl, role, roomId }: UseWebRTCProps) => {
   return {
     connected,
     connectionStatus,
-    progress,
-    currentFileName,
-    sendFile,
+    filesProgress,
+    sendFiles,
   };
 };
