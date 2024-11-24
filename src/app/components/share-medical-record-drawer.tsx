@@ -47,7 +47,7 @@ export default function ShareMedicalRecordDrawer() {
                 {Array.from(verificationCode).map((num, index) => (
                   <div
                     key={index}
-                    className="flex h-12 w-8 items-center justify-center rounded-lg bg-white text-3xl font-bold border-2"
+                    className="flex h-12 w-10 items-center justify-center rounded-lg bg-white text-3xl font-bold border-2"
                   >
                     {num}
                   </div>
