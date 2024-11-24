@@ -21,7 +21,7 @@ export const Navbar = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <nav className="flex items-center justify-between p-4">
+      <nav className="flex items-end justify-between p-4">
         <Link href="/" className="text-xl font-bold">
           <Image
             src={Vita_Logo_No_Bg}
@@ -30,8 +30,8 @@ export const Navbar = () => {
             alt="Vita logo"
           />
         </Link>
-        <Button variant="outline" onClick={signIn}>
-          Sign In
+        <Button variant="outline" className="m-0" onClick={signIn}>
+          Ingresa como paciente
         </Button>
       </nav>
     );
