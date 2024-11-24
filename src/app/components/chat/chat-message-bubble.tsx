@@ -18,7 +18,9 @@ export const ChatMessageBubble = (props: { message: ChatMessage }) => {
         <div className="mr-2">{prefix}</div>
         <div className="whitespace-pre-wrap">
           {/* TODO: Remove. Hacky fix, stop sequences don't seem to work with WebLLM yet. */}
-          {content.trim().split("\nInstruct:")[0].split("\nInstruction:")[0]}
+          {typeof content === "string"
+            ? content.trim().split("\nInstruct:")[0].split("\nInstruction:")[0]
+            : content}
         </div>
       </div>
     </div>

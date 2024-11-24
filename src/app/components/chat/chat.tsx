@@ -10,7 +10,7 @@ import { SendHorizontal } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export type ChatMessage = {
-  content: string;
+  content: React.ReactNode;
   role: "user" | "assistant";
   runId?: string;
   traceUrl?: string;
