@@ -24,7 +24,11 @@ const formSchema = z.object({
   files: z.array(z.any()),
 });
 
-export default function MedicalRecordForm() {
+export default function MedicalRecordForm({
+  onSuccess,
+}: {
+  onSuccess: () => void;
+}) {
   const { addRecord } = useMedicalRecords();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,6 +50,7 @@ export default function MedicalRecordForm() {
     });
 
     form.reset();
+    onSuccess();
   };
 
   return (

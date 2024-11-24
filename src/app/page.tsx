@@ -7,6 +7,7 @@ import MobileTabs from "./components/mobile-tabs";
 import ShareMedicalRecordDrawer from "./components/share-medical-record-drawer";
 import { DrawerDialogRecordForm } from "./components/records/record-form/drawer-dialog-record-form";
 import ConnectWithPatientDrawer from "./components/connect-with-patient-drawer";
+import { InitDialog } from "./components/init-dialog/init-dialog";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -23,6 +24,7 @@ export default function Home() {
 
   return (
     <main className="container flex flex-col mx-auto p-4 space-y-8 flex-grow">
+      <InitDialog />
       <div className="flex flex-col sm:hidden flex-grow">
         <MobileTabs />
       </div>

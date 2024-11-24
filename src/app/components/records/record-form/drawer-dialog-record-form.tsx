@@ -42,7 +42,7 @@ export function DrawerDialogRecordForm() {
               Llena los campos para crear un nuevo registro.
             </DialogDescription>
           </DialogHeader>
-          <MedicalRecordForm />
+          <MedicalRecordForm onSuccess={() => setOpen(false)} />
         </DialogContent>
       </Dialog>
     );
@@ -63,7 +63,7 @@ export function DrawerDialogRecordForm() {
           </DrawerDescription>
         </DrawerHeader>
         <div className="px-4">
-          <MedicalRecordForm />
+          <MedicalRecordForm onSuccess={() => setOpen(false)} />
         </div>
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
