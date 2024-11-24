@@ -18,7 +18,7 @@ export const Footer = () => {
         />
       </Link>
       <div className="flex flex-col items-center space-y-4">
-        <Link href="/" className="text-primary">
+        <Link href="/terms-and-conditions" className="text-primary">
           Términos y Condiciones
         </Link>
         © 2024 All rights reserved
