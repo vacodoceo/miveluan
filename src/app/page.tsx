@@ -2,12 +2,12 @@
 
 import MedicalRecordForm from "./components/medical-record-form";
 import MedicalRecordList from "./components/medical-record-list";
-import ShareButton from "./components/share-button";
 import { Chat } from "./components/chat/chat";
 import { useAuth } from "./contexts/auth.context";
 import { Button } from "@/components/ui/button";
 import { Radio } from "lucide-react";
 import MobileTabs from "./components/mobile-tabs";
+import ShareMedicalRecordDrawer from "./components/share-medical-record-drawer";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <main className="container mx-auto p-4 space-y-8">
       <div className="flex justify-center">
-        <ShareButton />
+        <ShareMedicalRecordDrawer />
       </div>
 
       <div className="block sm:hidden">
