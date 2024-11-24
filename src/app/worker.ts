@@ -20,6 +20,8 @@ import { Document } from "@langchain/core/documents";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
+type MemoryVector = MemoryVectorStore["memoryVectors"][number];
+
 const embeddings = new HuggingFaceTransformersEmbeddings({
   modelName: "Xenova/all-MiniLM-L6-v2",
   // Can use "nomic-ai/nomic-embed-text-v1" for more powerful but slower embeddings
@@ -27,6 +29,14 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 });
 
 const vectorstore = new MemoryVectorStore(embeddings);
+
+const uniqueVectors = new Set<string>();
+
+const sha256 = async (text: string) => {
+  return crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(
+    (hash) => new Uint8Array(hash).toString()
+  );
+};
 
 type ChatWindowMessage = {
   content: string;
@@ -43,6 +53,8 @@ const embedPDF = async (pdfBlob: Blob) => {
   const pdfLoader = new WebPDFLoader(pdfBlob, { parsedItemSeparator: " " });
   const docs = await pdfLoader.load();
 
+  console.log({docs});
+
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 500,
     chunkOverlap: 50,
@@ -50,12 +62,30 @@ const embedPDF = async (pdfBlob: Blob) => {
 
   const splitDocs = await splitter.splitDocuments(docs);
 
+  const docsWithHashes = await Promise.all(splitDocs.map(async (doc) => ({
+    hash: await sha256(doc.pageContent),
+    doc
+  })));
+
+  const uniqueSplitDocs = docsWithHashes.filter((doc) => {
+    const has = uniqueVectors.has(doc.hash);
+    if (!has) {
+      uniqueVectors.add(doc.hash);
+    }
+    return !has;
+  });
+
   self.postMessage({
     type: "log",
     data: splitDocs,
   });
 
-  await vectorstore.addDocuments(splitDocs);
+
+  await vectorstore.addDocuments(uniqueSplitDocs.map((doc) => doc.doc));
+
+  const vectors = vectorstore.memoryVectors;
+
+  return vectors;
 };
 
 const generateRAGResponse = async (
@@ -236,7 +266,11 @@ self.addEventListener("message", async (event: { data: any }) => {
 
   if (event.data.pdf) {
     try {
-      await embedPDF(event.data.pdf);
+      const vectors = await embedPDF(event.data.pdf);
+      self.postMessage({
+        type: "data",
+        data: vectors,
+      });
     } catch (e: any) {
       self.postMessage({
         type: "error",

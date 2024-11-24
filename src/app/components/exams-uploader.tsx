@@ -9,6 +9,17 @@ import { Upload, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useChatWorker } from "@/app/context/chat-worker-context";
+import {
+  createDriveFolderIfNotExists,
+  uploadFileToDrive,
+} from "@/lib/google-drive";
+import { useAuth } from "@/app/contexts/auth/auth.context";
+import { syncVectorsToGoogleDrive } from "@/lib/repositories/vectors/sync-vectors";
+import {
+  EXAM_FOLDER_NAME,
+  VECTOR_FILE_NAME,
+  VECTOR_FOLDER_NAME,
+} from "@/constants";
 
 interface ExamsUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: File[];
@@ -26,7 +37,9 @@ export function ExamsUploader(props: ExamsUploaderProps) {
     ...dropzoneProps
   } = props;
 
-  const { isLoading, embedPDF } = useChatWorker();
+  const { accessToken } = useAuth();
+
+  const { isLoading, embedPDF, vectors } = useChatWorker();
   const { toast } = useToast();
 
   const [filesLoading, setFilesLoading] = useState<string[]>([]);
@@ -36,7 +49,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
   });
 
   const onDrop = useCallback(
-    (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+    async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       const updatedFiles = files ? [...files, ...acceptedFiles] : acceptedFiles;
       setFiles(updatedFiles);
       setFilesLoading([
@@ -54,12 +67,41 @@ export function ExamsUploader(props: ExamsUploaderProps) {
       }
 
       acceptedFiles.forEach(async (file) => {
-        await embedPDF(file).then(() => {
-          setFilesLoading(filesLoading.filter((name) => name !== file.name));
-        });
+        try {
+          // First upload to Drive
+          if (accessToken) {
+            createDriveFolderIfNotExists(EXAM_FOLDER_NAME, accessToken!).then(
+              (folderId) => {
+                uploadFileToDrive(file, accessToken, folderId);
+              }
+            );
+          }
+
+          // Then process with your existing embedPDF
+          await embedPDF(file).then((vectors) => {
+            setFilesLoading(filesLoading.filter((name) => name !== file.name));
+            if (!vectors || !accessToken) return;
+            createDriveFolderIfNotExists(VECTOR_FOLDER_NAME, accessToken).then(
+              (csvFolderId) => {
+                syncVectorsToGoogleDrive(
+                  vectors,
+                  VECTOR_FILE_NAME,
+                  csvFolderId,
+                  accessToken
+                );
+              }
+            );
+          });
+        } catch (error) {
+          console.error("Error uploading file:", error);
+          toast({
+            title: "Upload Error",
+            description: `Failed to upload ${file.name}`,
+            variant: "destructive",
+          });
+        }
       });
     },
-
     [files, setFiles, toast, embedPDF, filesLoading]
   );
 
