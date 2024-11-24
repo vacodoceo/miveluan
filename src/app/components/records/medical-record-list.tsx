@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useMedicalRecords } from "../contexts/medical-record.context";
+import { useMedicalRecords } from "@/app/contexts/medical-record.context";
 import { Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

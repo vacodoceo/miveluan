@@ -1,18 +1,26 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Chat } from "./chat/chat";
-import MedicalRecordList from "./medical-record-list";
+import MedicalRecordList from "./records/medical-record-list";
+import { DrawerDialogRecordForm } from "./records/record-form/drawer-dialog-record-form";
+import ShareMedicalRecordDrawer from "./share-medical-record-drawer";
 
 export default function MobileTabs() {
   return (
     <Tabs defaultValue="record">
-      <div className="flex justify-center w-full">
-        <TabsList className="inline-flex">
-          <TabsTrigger value="record">Ficha Médica</TabsTrigger>
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-        </TabsList>
-      </div>
+      <TabsList className="grid w-full h-auto grid-cols-2">
+        <TabsTrigger className="text-base font-medium" value="record">
+          Ficha Médica
+        </TabsTrigger>
+        <TabsTrigger className="text-base font-medium" value="chat">
+          Chat
+        </TabsTrigger>
+      </TabsList>
       <TabsContent value="record">
         <MedicalRecordList />
+        <div className="grid grid-cols-2 gap-2">
+          <ShareMedicalRecordDrawer />
+          <DrawerDialogRecordForm />
+        </div>
       </TabsContent>
       <TabsContent value="chat">
         <Chat />

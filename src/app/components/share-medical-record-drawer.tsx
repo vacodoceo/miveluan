@@ -27,7 +27,7 @@ export default function ShareMedicalRecordDrawer() {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button className="px-8 py-6 text-lg">
+        <Button size="lg">
           <Share2 className="mr-2 h-5 w-5" />
           Compartir ficha
         </Button>
