@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import { FileCheck, Loader2 } from "lucide-react";
 
 import { useCallback, useState } from "react";
 import { useControllableState } from "../hooks/use-controllable-state";
@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Upload, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useChatWorker } from "@/app/context/chat-worker-context";
 
@@ -30,7 +29,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
   const { isLoading, embedPDF } = useChatWorker();
   const { toast } = useToast();
 
-  const [filesLoading, setFilesLoading] = useState<Set<string>>(new Set());
+  const [filesLoading, setFilesLoading] = useState<string[]>([]);
   const [files, setFiles] = useControllableState({
     prop: valueProp,
     onChange: onValueChange,
@@ -40,6 +39,10 @@ export function ExamsUploader(props: ExamsUploaderProps) {
     (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       const updatedFiles = files ? [...files, ...acceptedFiles] : acceptedFiles;
       setFiles(updatedFiles);
+      setFilesLoading([
+        ...filesLoading,
+        ...acceptedFiles.map((file) => file.name),
+      ]);
 
       if (rejectedFiles.length > 0) {
         rejectedFiles.forEach(({ file }) => {
@@ -52,15 +55,12 @@ export function ExamsUploader(props: ExamsUploaderProps) {
 
       acceptedFiles.forEach(async (file) => {
         await embedPDF(file).then(() => {
-          toast({
-            title: "File uploaded",
-            description: `File ${file.name} was uploaded`,
-          });
+          setFilesLoading(filesLoading.filter((name) => name !== file.name));
         });
       });
     },
 
-    [files, setFiles, toast, embedPDF]
+    [files, setFiles, toast, embedPDF, filesLoading]
   );
 
   function onRemove(index: number) {
@@ -132,7 +132,7 @@ export function ExamsUploader(props: ExamsUploaderProps) {
                 key={index}
                 file={file}
                 onRemove={() => onRemove(index)}
-                // loading={}
+                loading={filesLoading.includes(file.name)}
               />
             ))}
           </div>
@@ -163,17 +163,24 @@ const formatBytes = (
 interface FileCardProps {
   file: File;
   onRemove: () => void;
-  progress?: number;
+  loading: boolean;
 }
 
-function FileCard({ file, progress, onRemove }: FileCardProps) {
+function FileCard({ file, loading, onRemove }: FileCardProps) {
   return (
     <div className="relative flex items-center gap-2.5">
       <div className="flex flex-1 gap-2.5">
-        <FileText
-          className="size-10 text-muted-foreground"
-          aria-hidden="true"
-        />
+        {loading ? (
+          <Loader2
+            className="size-10 text-muted-foreground animate-spin"
+            aria-hidden="true"
+          />
+        ) : (
+          <FileCheck
+            className="size-10 text-muted-foreground"
+            aria-hidden="true"
+          />
+        )}
         <div className="flex w-full flex-col gap-2">
           <div className="flex flex-col gap-px">
             <p className="line-clamp-1 text-sm font-medium text-foreground/80">
@@ -183,7 +190,6 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
               {formatBytes(file.size)}
             </p>
           </div>
-          {progress ? <Progress value={progress} /> : null}
         </div>
       </div>
       <div className="flex items-center gap-2">
