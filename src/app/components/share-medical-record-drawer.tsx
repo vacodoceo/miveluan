@@ -10,7 +10,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useWebRTC } from "@/hooks/use-web-rtc";
-import { Share2, RefreshCw } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { useAuth } from "../contexts/auth.context";
 import { getExamPDF, listExamsPDFs } from "@/lib/repositories/exams";
 import { BounceLoader } from "react-spinners";
@@ -35,7 +35,7 @@ const blobToFile = ({
 
 export default function ShareMedicalRecordDrawer() {
   const { accessToken } = useAuth();
-  const [roomId, setRoomId] = useState(getRandomRoomId);
+  const [roomId] = useState(getRandomRoomId);
   const [isLoading, setIsLoading] = useState(false);
   const {
     connected,
@@ -43,7 +43,6 @@ export default function ShareMedicalRecordDrawer() {
     filesProgress,
     isReceiverConnected,
     sendFiles,
-    disconnect,
   } = useWebRTC({
     serverUrl: SERVER_URL,
     role: "sender",
@@ -73,13 +72,6 @@ export default function ShareMedicalRecordDrawer() {
       setIsLoading(false);
     }
   }, [accessToken]);
-
-  const handleRegenerateRoom = useCallback(async () => {
-    if (connected) {
-      await disconnect();
-    }
-    setRoomId(getRandomRoomId());
-  }, [connected, disconnect]);
 
   const handleDrawerOpen = async () => {
     const fetchedFiles = await getFiles();
@@ -129,15 +121,6 @@ export default function ShareMedicalRecordDrawer() {
                     </div>
                   ))}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleRegenerateRoom}
-                  className="ml-2"
-                  disabled={isReceiverConnected}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
               </div>
             </div>
 
