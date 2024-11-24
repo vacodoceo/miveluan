@@ -7,6 +7,7 @@ import { Chat } from "./components/chat/chat";
 import { useAuth } from "./contexts/auth.context";
 import { Button } from "@/components/ui/button";
 import { Radio } from "lucide-react";
+import MobileTabs from "./components/mobile-tabs";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -29,15 +30,22 @@ export default function Home() {
       <div className="flex justify-center">
         <ShareButton />
       </div>
-      <MedicalRecordForm />
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
-          <MedicalRecordList />
-        </div>
-        <div>
-          <h2 className="text-2xl font-semibold mb-4">Chat con tu IA</h2>
-          <Chat />
+
+      <div className="block sm:hidden">
+        <MobileTabs />
+      </div>
+
+      <div className="hidden sm:block">
+        <MedicalRecordForm />
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
+            <MedicalRecordList />
+          </div>
+          <div>
+            <h2 className="text-2xl font-semibold mb-4">Chat con tu IA</h2>
+            <Chat />
+          </div>
         </div>
       </div>
     </main>

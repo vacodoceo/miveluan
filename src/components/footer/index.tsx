@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export const Footer = () => {
   return (
-    <div className="text-sm flex flex-col items-center mb-8">
+    <div className="text-sm flex flex-col items-center mb-8 mt-8">
       <Link href="/" className="text-xl font-bold mb-2">
         <Image
           src="/GitHub_Invertocat_Logo.png"

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { SendHorizontal } from "lucide-react";
 
 export type ChatMessage = {
   content: string;
@@ -88,7 +89,7 @@ export const Chat = () => {
             onChange={(e) => setInput(e.target.value)}
           />
           <Button type="submit" loading={isLoading}>
-            Enviar
+            <SendHorizontal />
           </Button>
         </div>
       </form>
