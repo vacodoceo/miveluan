@@ -20,6 +20,9 @@ export default function Home() {
           <h2 className="text-2xl font-semibold mb-4">Historial médico</h2>
           <MedicalRecordList />
         </div>
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Chat con tu IA</h2>
+        </div>
       </div>
     </main>
   );
