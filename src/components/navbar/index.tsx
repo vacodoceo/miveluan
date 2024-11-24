@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,14 @@ export const Navbar = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <nav className="flex items-center justify-between p-4 bg-white shadow-sm">
+      <nav className="flex items-center justify-between p-4">
         <Link href="/" className="text-xl font-bold">
-          VITA
+          <Image
+            src="/Vita logo no bg.png"
+            width={100}
+            height={100}
+            alt="Vita logo"
+          />
         </Link>
         <Button variant="outline" onClick={signIn}>
           Sign In
@@ -30,9 +36,14 @@ export const Navbar = () => {
   }
 
   return (
-    <nav className="flex items-center justify-between p-4 bg-white shadow-sm">
+    <nav className="flex items-center justify-between p-4">
       <Link href="/" className="text-xl font-bold">
-        VITA
+        <Image
+          src="/Vita logo no bg.png"
+          width={100}
+          height={100}
+          alt="Vita logo"
+        />
       </Link>
       <div className="flex items-center space-x-4">
         <span className="text-sm font-medium">{user.displayName}</span>
