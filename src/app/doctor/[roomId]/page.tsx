@@ -86,17 +86,6 @@ export default function ReceiverPage({
                     </div>
                   </div>
 
-                  {/* Download all button */}
-                  {completedFiles > 0 && (
-                    <button
-                      onClick={downloadAllFiles}
-                      className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Descargar todos los archivos
-                    </button>
-                  )}
-
                   {/* File list */}
                   <div className="space-y-2">
                     {filesProgress.map((file) => (
@@ -128,6 +117,17 @@ export default function ReceiverPage({
                       </div>
                     ))}
                   </div>
+
+                  {/* Download all button */}
+                  {completedFiles > 0 && (
+                    <button
+                      onClick={downloadAllFiles}
+                      className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Descargar todos los archivos
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="flex items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-lg">
