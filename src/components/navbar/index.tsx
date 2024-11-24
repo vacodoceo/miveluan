@@ -56,8 +56,8 @@ export const Navbar = () => {
                 </Avatar>
               </Button>
               <Image
-                src="/google-icon-logo-svgrepo-com.svg"
-                alt={Google_Logo}
+                src={Google_Logo}
+                alt="Google logo"
                 width={16}
                 height={16}
                 className="absolute bottom-0 right-0"
