@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vita - Tu salud en tus manos
 
-## Getting Started
+## ¿Qué es Vita?
 
-First, run the development server:
+Vita es una innovadora plataforma que empodera a los pacientes al ofrecer un espacio **seguro y centralizado** para gestionar y compartir sus registros médicos. Con nuestra aplicación, tu salud está siempre al alcance de tu mano.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Características Clave
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Almacenamiento Seguro**: Todos tus documentos médicos se guardan en tu **Google Drive**, asegurando privacidad y acceso fácil.
+- **Compartición Rápida**: Comparte tus registros con médicos especialistas con solo un clic, mejorando la comunicación y la atención.
+- **Inteligencia Artificial On-Premise**: Nuestra herramienta de IA interpreta tus documentos y proporciona retroalimentación personalizada para que tomes decisiones informadas sobre tu salud. Todo esto sucede en tu dispositivo, sin comunicarse con ningún servicio en la nube, protegiendo la privacidad de tus datos.
+- **Acceso 24/7**: Consulta tu historial médico en cualquier momento y desde cualquier lugar, facilitando el seguimiento de tu salud.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Beneficios
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Ahorra Tiempo y Dinero**: Evita exámenes duplicados y reduce la carga administrativa.
+- **Toma de Decisiones Informadas**: Con toda tu información en un solo lugar, los médicos pueden ofrecerte un tratamiento más efectivo.
+- **Control Total**: Decides quién accede a tu información médica.
 
-## Learn More
+## Instalación
 
-To learn more about Next.js, take a look at the following resources:
+### Prerrequisitos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Asegúrate de tener instalado:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Node.js](https://nodejs.org/)
+- [Git](https://git-scm.com/)
+- Una cuenta de Google para la integración con Google Drive
 
-## Deploy on Vercel
+### Pasos de Instalación
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Clona el repositorio:
+   ```sh
+   git clone https://github.com/tuusuario/vita.git
+   cd vita
+   ```
+2. Instala las dependencias:
+   ```sh
+   npm install
+   ```
+3. Configura las credenciales necesarias para Google Drive.
+4. Inicia la aplicación:
+   ```sh
+   npm start
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Uso
+
+1. Regístrate e inicia sesión en la aplicación.
+2. Sube tus documentos médicos a tu Google Drive a través de la plataforma.
+3. Comparte tus documentos con profesionales de la salud de manera segura.
+4. Recibe análisis de IA sobre tu historial médico.
+
+## Licencia
+
+## Este proyecto está bajo la licencia GNU GENERAL PUBLIC LICENSE. Consulta el archivo `LICENSE` para más detalles.
+
+Pon **tu salud en tus manos** con Vita hoy mismo!
